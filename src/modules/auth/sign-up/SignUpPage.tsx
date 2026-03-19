@@ -1,0 +1,9 @@
+import { useSignUpModel } from "./sign-up.model";
+import { SignUpView } from "./sign-up.view";
+
+const SignUpPage = () => {
+  const methods = useSignUpModel();
+  return <SignUpView {...methods} />;
+};
+
+export default SignUpPage;

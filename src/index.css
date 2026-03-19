@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #3b82f6;
+  --color-stroke: #e5e7eb;
+  --color-boxdark: #1f2937;
+  --color-boxdark-2: #111827;
+}
+
+@layer base {
+  body {
+    background-color: #f9fafb;
+    color: #111827;
+    @apply antialiased;
+  }
+}

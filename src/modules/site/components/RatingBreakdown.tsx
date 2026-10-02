@@ -18,7 +18,7 @@ export const RatingBreakdown = ({ counts, sampleSize }: RatingBreakdownProps) =>
           <span className="font-medium text-ink-soft">
             {note} {note === 1 ? "estrela" : "estrelas"}
           </span>
-          <span aria-hidden="true" className="h-2.5 overflow-hidden rounded-full bg-[#ECEAE2]">
+          <span aria-hidden="true" className="h-2.5 overflow-hidden rounded-full bg-[#E2E8F0]">
             <span className="block h-full rounded-full bg-star" style={{ width: `${pct}%` }} />
           </span>
           <span className="text-right tabular-nums text-muted">

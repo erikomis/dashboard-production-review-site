@@ -10,7 +10,7 @@ export const buttonVariants = tv({
       ghost: "text-ink hover:bg-ink/5",
       link: "h-auto px-0 text-brand-700 underline decoration-brand-300 decoration-2 underline-offset-4 hover:text-brand-900",
       danger: "bg-danger text-white hover:bg-[#912018]",
-      light: "bg-cream text-ink hover:bg-white",
+      light: "bg-white text-ink hover:bg-brand-50",
     },
     size: {
       default: "h-11 px-5 text-sm",

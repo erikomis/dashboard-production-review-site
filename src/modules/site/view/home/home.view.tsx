@@ -78,7 +78,7 @@ export const HomeView = (props: HomeViewProps) => {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-48 left-1/3 h-[24rem] w-[24rem] rounded-full bg-star/20 blur-3xl"
+          className="pointer-events-none absolute -bottom-48 left-1/3 h-[24rem] w-[24rem] rounded-full bg-sky-400/15 blur-3xl"
         />
         <div className="container-page relative grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[1.15fr_0.85fr] lg:py-24">
           <div>
@@ -117,7 +117,7 @@ export const HomeView = (props: HomeViewProps) => {
           <div className="relative hidden lg:block">
             {highlightReview ? (
               <figure className="relative rotate-[-1.5deg] rounded-3xl bg-surface p-7 text-ink shadow-raised">
-                <Quote aria-hidden="true" className="absolute -top-5 right-8 h-10 w-10 fill-cream text-cream" />
+                <Quote aria-hidden="true" className="absolute -top-5 right-8 h-10 w-10 fill-brand-200 text-brand-200" />
                 <StarRating value={highlightReview.note} size="md" />
                 <blockquote className="mt-4">
                   <p className="font-display text-2xl font-semibold leading-snug">“{highlightReview.title}”</p>
@@ -167,7 +167,7 @@ export const HomeView = (props: HomeViewProps) => {
                 key={category.id}
                 className={cn(
                   "flex flex-col rounded-2xl border border-line p-6",
-                  idx % 2 === 0 ? "bg-brand-50" : "bg-cream/60",
+                  idx % 2 === 0 ? "bg-brand-50" : "bg-surface",
                 )}
               >
                 <h3 className="text-xl font-semibold text-ink">{category.name}</h3>
@@ -268,8 +268,8 @@ export const HomeView = (props: HomeViewProps) => {
 
       {/* CTA */}
       <section aria-labelledby="cta-title" className="container-page pt-16 sm:pt-20">
-        <div className="relative overflow-hidden rounded-3xl bg-cream px-6 py-12 sm:px-12">
-          <div aria-hidden="true" className="absolute -right-6 -top-10 hidden font-display text-[14rem] font-bold leading-none text-star/15 md:block">
+        <div className="relative overflow-hidden rounded-3xl bg-brand-50 px-6 py-12 sm:px-12">
+          <div aria-hidden="true" className="absolute -right-6 -top-10 hidden font-display text-[14rem] font-bold leading-none text-brand-600/10 md:block">
             ★
           </div>
           <div className="relative max-w-2xl">

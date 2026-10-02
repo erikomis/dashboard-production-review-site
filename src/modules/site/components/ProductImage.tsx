@@ -14,10 +14,10 @@ interface ProductImageProps {
 }
 
 const TONES = [
-  "from-brand-100 via-brand-50 to-cream",
-  "from-cream via-[#FBF7EC] to-brand-50",
-  "from-[#E4EEF6] via-[#F2F6F9] to-brand-50",
-  "from-[#F4E7DA] via-[#FBF5EE] to-cream",
+  "from-brand-100 via-brand-50 to-[#F5F7FB]",
+  "from-[#E0F2FE] via-[#F0F9FF] to-brand-50",
+  "from-[#EDE9FE] via-[#F5F3FF] to-brand-50",
+  "from-[#FEF3C7] via-[#FFFBEB] to-brand-50",
 ];
 
 /** Imagem do produto ou placeholder elegante quando não há imagem. */
@@ -48,7 +48,7 @@ export const ProductImage = ({ name, src, seed = 0, caption, className, size = "
       )}
     >
       <span
-        className="absolute inset-0 opacity-60 [background-image:radial-gradient(rgba(6,74,53,0.14)_1px,transparent_1px)] [background-size:14px_14px]"
+        className="absolute inset-0 opacity-60 [background-image:radial-gradient(rgba(40,53,144,0.12)_1px,transparent_1px)] [background-size:14px_14px]"
       />
       <span
         className={cn(

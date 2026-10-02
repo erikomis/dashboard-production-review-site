@@ -23,18 +23,18 @@
 
   /* Foco visível consistente em todos os elementos interativos */
   :focus-visible {
-    outline: 3px solid #0b7a56;
+    outline: 3px solid #3c50e0;
     outline-offset: 2px;
     border-radius: 4px;
   }
 
   .on-dark :focus-visible {
-    outline-color: #fff3d6;
+    outline-color: #c3cbfb;
   }
 
   ::selection {
-    background: #d2eee1;
-    color: #13201a;
+    background: #dfe4fd;
+    color: #1c2434;
   }
 }
 
@@ -44,7 +44,7 @@
   }
 
   .skeleton {
-    @apply rounded-md bg-[#E9E7DF] motion-safe:animate-shimmer;
+    @apply rounded-md bg-[#E2E8F0] motion-safe:animate-shimmer;
   }
 
   .link {

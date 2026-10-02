@@ -41,10 +41,15 @@ Site público do ecossistema _Production Review_: compare produtos, veja notas e
 
 | | |
 |---|---|
-| 🔎 **Busca e catálogo** | Busca por nome, filtro por subcategoria, ordenação e paginação, tudo refletido na URL. |
-| ⭐ **Notas da comunidade** | Nota média, total e distribuição de 1 a 5 estrelas em cada produto. |
-| ✍️ **Avaliações** | Usuários logados publicam avaliações com título, comentário e nota. A lista e o resumo atualizam sozinhos. |
-| 🧭 **Navegação por categorias** | Categorias e subcategorias direto na home e no rodapé. |
+| 🔎 **Busca e catálogo** | Busca por nome, filtro por subcategoria, ordenação (recentes, nota, mais avaliados, nome) e paginação, tudo no servidor e refletido na URL. |
+| 📸 **Fotos reais** | Catálogo importado do Open Food Facts: a foto da embalagem aparece inteira, sobre fundo neutro, com placeholder quando não há imagem. |
+| 🏆 **Ranking** | Página _Mais bem avaliados_ com posição, nota e total, filtro por categoria e destaque na home (melhores notas e mais avaliados). |
+| 🧭 **Páginas de categoria** | `/categorias/{slug}` com descrição, chips de subcategoria, ordenação e paginação. Links da home, do rodapé e do produto levam para cá. |
+| ⭐ **Notas da comunidade** | Nota média, total e distribuição de 1 a 5 estrelas em cada produto. Cada barra da distribuição filtra as avaliações por nota. |
+| ✍️ **Avaliações** | Usuários logados publicam avaliações com título, comentário e nota. Ordenação por mais recentes, mais úteis, maior/menor nota ou mais antigas. |
+| 👍 **Isso foi útil** | Marque as avaliações que ajudaram você, com resposta instantânea (atualização otimista com desfazer automático em caso de erro). |
+| 🗂 **Minhas avaliações** | Lista das suas avaliações, inclusive as ocultas pela moderação (com o motivo), com edição e exclusão. |
+| 🛍 **Produtos relacionados** | Na página do produto, outros itens da mesma subcategoria, os mais bem avaliados primeiro. |
 | 🔐 **Conta completa** | Cadastro, ativação por e-mail, login (usuário ou e-mail), recuperação de senha com código de 6 dígitos e logout. |
 | ↩️ **Volta para onde parou** | Depois do login, o usuário retorna para a página de origem (inclusive para o formulário de avaliação). |
 | 📱 **Responsivo** | De 360 px a telas grandes, com menu mobile acessível. |
@@ -65,14 +70,31 @@ Site público do ecossistema _Production Review_: compare produtos, veja notas e
 
 <table>
   <tr>
-    <td width="68%"><img src="docs/screenshots/produto.png" alt="Página do produto com nota média, distribuição das notas e lista de avaliações" /></td>
+    <td width="50%"><img src="docs/screenshots/ranking.png" alt="Ranking dos produtos mais bem avaliados com posição, nota e filtro por categoria" /></td>
+    <td width="50%"><img src="docs/screenshots/categoria.png" alt="Página da categoria Laticínios com chips de subcategoria, ordenação e fotos dos produtos" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Ranking</b>: mais bem avaliados</sub></td>
+    <td align="center"><sub><b>Categoria</b>: subcategorias e ordenação</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="68%"><img src="docs/screenshots/produto.png" alt="Página do produto com nota média, distribuição das notas clicável, ordenação e botão Isso foi útil" /></td>
     <td width="32%" valign="top"><img src="docs/screenshots/mobile.png" alt="Página inicial no celular" /></td>
   </tr>
   <tr>
-    <td align="center"><sub><b>Produto</b>: nota, distribuição e avaliações</sub></td>
+    <td align="center"><sub><b>Produto</b>: filtros por nota, ordenação e "útil"</sub></td>
     <td align="center"><sub><b>Mobile</b></sub></td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="docs/screenshots/minhas-avaliacoes.png" alt="Minhas avaliações: lista com produto, nota, data, status e botões de editar e excluir" width="80%" />
+  <br />
+  <sub><b>Minhas avaliações</b>: status, edição e exclusão</sub>
+</p>
 
 ## 🚀 Como rodar
 
@@ -147,12 +169,14 @@ src/
 │   │   ├── hooks/          #   mutations de autenticação
 │   │   └── services/       #   chamadas /auth/*
 │   └── site/
-│       ├── components/     # ProductCard, StarRating, RatingBreakdown, Pagination...
+│       ├── components/     # ProductCard, RankedProduct, RatingBreakdown, FilterChips, ReviewCard...
 │       ├── layout/         # cabeçalho, rodapé e busca (também em MVVM)
-│       ├── hooks/          # queries de produtos, categorias e avaliações
+│       ├── hooks/          # queries e mutations (inclusive "útil" otimista)
 │       ├── services/       # chamadas /production, /category, /review
-│       └── view/           # home, product-list, product-detail (+ create-review)
-├── shared/                 # componentes, hooks, tipos e utilitários reutilizáveis
+│       ├── constants/      # opções de ordenação compartilhadas
+│       └── view/           # home, product-list, product-detail (+ create-review),
+│                           # ranking, category, my-reviews (+ edit-review)
+├── shared/                 # componentes (Modal, botões, estados), hooks, tipos e utilitários
 └── router.tsx              # rotas (TanStack Router) com loaders
 ```
 
@@ -162,13 +186,18 @@ src/
 
 | Recurso | Endpoint |
 |---|---|
-| Produtos (busca, ordenação, paginação) | `GET /production/list?page&size&search&property&sort` |
-| Produto pelo slug | `GET /production/slug/{slug}` |
-| Avaliações de um produto | `GET /review/product/{id}?page&size` |
-| Resumo das notas | `GET /review/product/{id}/summary` |
-| Avaliações recentes | `GET /review/list?size=6` |
-| Publicar avaliação | `POST /review/` |
+| Produtos com nota, total e foto (busca, filtros, ordenação, paginação) | `GET /production/list?page&size&search&categoryId&subCategorieId&property&sort` |
+| Ranking (mais bem avaliados) | `GET /production/list?property=averageNote&sort=DESC&onlyRated=true[&categoryId]` |
+| Mais avaliados | `GET /production/list?property=totalReviews&sort=DESC&onlyRated=true` |
+| Produto pelo slug (com fotos) | `GET /production/slug/{slug}` |
+| Categoria pelo slug | `GET /category/slug/{slug}` |
 | Categorias e subcategorias | `GET /category/list` |
+| Avaliações de um produto | `GET /review/product/{id}?page&size&note&sort` |
+| Resumo e distribuição das notas | `GET /review/product/{id}/summary` |
+| Avaliações recentes | `GET /review/list?size=6` |
+| Minhas avaliações | `GET /review/me?page&size` |
+| Publicar, editar e excluir avaliação | `POST /review/` · `PUT /review/{id}` · `DELETE /review/{id}` |
+| Marcar como útil | `POST /review/{id}/helpful` |
 | Sessão | `POST /auth/sign-in` · `POST /auth/logout` · `GET /user/me` |
 
 ## ♿ Acessibilidade
@@ -180,7 +209,10 @@ Construído para atender **WCAG 2.1 nível AA**:
 - **Teclado**: foco sempre visível (contorno de 3 px), alvos de pelo menos 44 px, menus que fecham com <kbd>Esc</kbd> e devolvem o foco.
 - **Formulários**: todo campo tem `label`; erros ficam ligados por `aria-describedby` + `aria-invalid`, e mensagens da API usam `role="alert"`.
 - **Nota em estrelas**: na entrada, é um grupo de rádios nativo (as setas trocam a nota e cada opção é anunciada como _"3 de 5 estrelas"_); na exibição, tem texto alternativo como _"Nota 4,0 de 5 estrelas"_.
-- **Feedback assíncrono**: `aria-live` no envio de avaliação e na contagem de resultados.
+- **Filtros**: barras da distribuição são botões com `aria-pressed`; chips de categoria/subcategoria marcam o ativo com `aria-current`; a paginação usa `aria-current="page"`.
+- **"Isso foi útil"**: botão com `aria-pressed`; na própria avaliação fica desabilitado com a explicação visível.
+- **Diálogos**: edição e exclusão usam `<dialog>` modal com foco preso, <kbd>Esc</kbd> para fechar e foco devolvido ao botão de origem; a exclusão é um `alertdialog` com foco inicial em "Cancelar".
+- **Feedback assíncrono**: `aria-live` no envio de avaliação, na contagem de resultados, nos filtros e nas marcações de útil.
 - **Movimento e contraste**: respeita `prefers-reduced-motion`; todos os textos passam de 4,5:1 de contraste (verificado por script).
 
 ## 🎨 Design system

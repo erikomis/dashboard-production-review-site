@@ -1,0 +1,26 @@
+[
+  {
+    "id": 3, "name": "Cafeteira Express", "description": "Cafeteira elétrica para espresso, 15 bar, reservatório de 1,2 L",
+    "slug": "cafeteira-express", "subCategorieId": 9, "subCategorieName": "Cafés", "subCategorieSlug": "cafes",
+    "categoryId": 5, "categoryName": "Bebidas", "categorySlug": "bebidas",
+    "imageUrl": "https://images.openfoodfacts.org/images/products/cafeteira.jpg",
+    "averageNote": 4.5, "totalReviews": 2, "createdAt": "2026-10-01T23:14:44Z",
+    "images": [{ "id": 5, "urlImage": "https://images.openfoodfacts.org/images/products/cafeteira.jpg" }],
+    "followersCount": 3, "followedByMe": false
+  },
+  {
+    "id": 37, "name": "Café Em Cápsula Intenso Illy 10 Unidades", "description": "Marca: Illy · 57 g · Nutri-Score A",
+    "slug": "cafe-em-capsula-intenso-illy-8003753158761", "subCategorieId": 9, "subCategorieName": "Cafés", "subCategorieSlug": "cafes",
+    "categoryId": 5, "categoryName": "Bebidas", "categorySlug": "bebidas",
+    "imageUrl": "https://images.openfoodfacts.org/images/products/800/375/315/8761/front_pt.12.400.jpg",
+    "averageNote": null, "totalReviews": 0, "createdAt": "2026-10-02T03:12:00Z",
+    "images": [], "followersCount": 0, "followedByMe": false
+  },
+  {
+    "id": 1, "name": "Smartphone X", "description": "Celular com ótima câmera",
+    "slug": "smartphone-x", "subCategorieId": 1, "subCategorieName": "Celulares", "subCategorieSlug": "celulares",
+    "categoryId": 1, "categoryName": "Eletrônicos", "categorySlug": "eletronicos",
+    "imageUrl": null, "averageNote": 4.0, "totalReviews": 1, "createdAt": "2026-10-01T23:14:44Z",
+    "images": [], "followersCount": 0, "followedByMe": false
+  }
+]

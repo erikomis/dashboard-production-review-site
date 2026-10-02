@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
 import { Button } from "@/shared/components/button";
+import { formatCountdown } from "@/shared/hooks/useCooldown";
 import { Input } from "@/shared/components/input";
 import { AuthHeading } from "../components/AuthHeading";
 import { FormAlert } from "../components/FormAlert";
@@ -15,6 +16,7 @@ export const ForgotPasswordView = ({
   isSubmitting,
   onSubmit,
   serverError,
+  retryIn,
 }: ForgotPasswordViewProps) => {
   return (
     <>
@@ -37,8 +39,8 @@ export const ForgotPasswordView = ({
           containerClassName="mb-6"
         />
 
-        <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
-          {isSubmitting ? "Enviando código…" : "Enviar código"}
+        <Button type="submit" size="lg" loading={isSubmitting} disabled={retryIn > 0} className="w-full">
+          {retryIn > 0 ? `Aguarde ${formatCountdown(retryIn)}` : isSubmitting ? "Enviando código…" : "Enviar código"}
         </Button>
       </form>
 

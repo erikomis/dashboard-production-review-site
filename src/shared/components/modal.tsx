@@ -102,7 +102,7 @@ export const Modal = ({
       }}
       className={cn(
         "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-2xl border-0 bg-surface p-0 text-ink shadow-raised",
-        "backdrop:bg-ink/60 backdrop:backdrop-blur-[2px]",
+        "backdrop:bg-[#0B1120]/65 backdrop:backdrop-blur-[2px] motion-safe:animate-pop-in dark:border dark:border-line",
         className,
       )}
     >

@@ -4,11 +4,39 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#3C50E0" />
+    <!--
+      Tema antes da primeira pintura (evita o "flash" claro no modo escuro):
+      usa a escolha salva ("light" | "dark") ou, sem escolha, a preferência do sistema.
+      Mantenha a chave em sincronia com src/shared/theme/theme.ts.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("reviewstore-theme");
+          var dark =
+            stored === "dark" ||
+            (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var root = document.documentElement;
+          root.classList.toggle("dark", dark);
+          root.style.colorScheme = dark ? "dark" : "light";
+        } catch (e) {}
+      })();
+    </script>
     <meta
       name="description"
       content="ReviewStore: avaliações reais de quem já comprou. Compare produtos, veja notas e compartilhe sua experiência."
     />
+    <meta property="og:site_name" content="ReviewStore" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ReviewStore — Avaliações reais de produtos" />
+    <meta
+      property="og:description"
+      content="Avaliações reais de quem já comprou. Compare produtos, veja notas e compartilhe sua experiência."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

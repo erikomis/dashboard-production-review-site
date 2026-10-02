@@ -9,7 +9,7 @@ export const LayoutSiteView = ({ mainRef, categories, ...headerProps }: LayoutSi
   <div className="flex min-h-screen flex-col">
     <a
       href="#conteudo"
-      className="sr-only z-50 rounded-lg bg-ink px-4 py-3 font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      className="sr-only z-50 rounded-lg bg-ink px-4 py-3 font-semibold text-surface focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
     >
       Pular para o conteúdo
     </a>

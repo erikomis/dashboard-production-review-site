@@ -27,7 +27,7 @@ export const RatingBreakdown = ({ distribution, total, selected, onSelect, contr
   });
 
   const bar = (pct: number, active: boolean) => (
-    <span aria-hidden="true" className="h-2.5 overflow-hidden rounded-full bg-[#E2E8F0]">
+    <span aria-hidden="true" className="h-2.5 overflow-hidden rounded-full bg-line">
       <span className={cn("block h-full rounded-full", active ? "bg-brand-600" : "bg-star")} style={{ width: `${pct}%` }} />
     </span>
   );

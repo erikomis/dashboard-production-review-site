@@ -28,6 +28,25 @@ export interface ProductDetailImage {
 /** Retornado por GET /production/{id} e GET /production/slug/{slug} */
 export interface ProductDetail extends ProductSummary {
   images: ProductDetailImage[];
+  /** Quantas pessoas seguem o produto */
+  followersCount: number;
+  /** Se o usuário logado segue o produto (false sem login) */
+  followedByMe: boolean;
+}
+
+/** Resposta de POST/DELETE /production/{id}/follow */
+export interface FollowResult {
+  following: boolean;
+  followersCount: number;
+}
+
+/** Item de GET /production/suggest (autocompletar) */
+export interface ProductSuggestion {
+  id: number;
+  name: string;
+  slug: string;
+  imageUrl: string | null;
+  categoryName: string | null;
 }
 
 export type ProductPage = Page<ProductSummary>;

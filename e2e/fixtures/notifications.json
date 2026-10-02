@@ -1,0 +1,17 @@
+[
+  {
+    "id": 31, "type": "REVIEW_REPLIED", "title": "Sua avaliação recebeu uma resposta",
+    "message": "A equipe ReviewStore respondeu à sua avaliação \"Ok\": Obrigado pelo retorno!",
+    "link": "/products/cafeteira-express#review-2", "read": false, "createdAt": "2026-10-02T14:12:27Z"
+  },
+  {
+    "id": 30, "type": "REVIEW_HELPFUL", "title": "Sua avaliação foi útil",
+    "message": "1 pessoa achou sua avaliação \"Muito bom\" útil.",
+    "link": "/products/smartphone-x#review-1", "read": false, "createdAt": "2026-10-02T10:00:00Z"
+  },
+  {
+    "id": 29, "type": "FOLLOWED_PRODUCT_REVIEW", "title": "Nova avaliação em Cafeteira Express",
+    "message": "Ana Souza avaliou Cafeteira Express com 5 estrelas.",
+    "link": "/products/cafeteira-express#review-12", "read": true, "createdAt": "2026-10-02T12:40:00Z"
+  }
+]

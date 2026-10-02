@@ -4,8 +4,11 @@ import { toast } from "react-toastify";
 import { useQueryProductBySlug, useQueryProducts } from "@/modules/site/hooks/useQueryProducts";
 import { useQueryReviewSummary, useQueryReviewsByProduct } from "@/modules/site/hooks/useQueryReviews";
 import { useMutationHelpful, usePendingHelpfulIds } from "@/modules/site/hooks/useMutationHelpful";
+import { useMutationFollow } from "@/modules/site/hooks/useMutationFollow";
+import { useQuerySeoProduct } from "@/modules/site/hooks/useQuerySeo";
 import { useMeQuery } from "@/shared/hooks/useMeQuery";
-import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
+import { useSeo } from "@/shared/hooks/useSeo";
+import { buildProductJsonLd } from "@/shared/utils/json-ld";
 import { queryClient } from "@/shared/libs/react-query";
 import { HttpError } from "@/shared/services/http-error";
 import type { RatingDistribution, Review, ReviewSort } from "@/shared/types/review";
@@ -38,6 +41,9 @@ export const useProductDetailModel = () => {
   const selectedImage = imageChoice.slug === slug ? imageChoice.index : 0;
   const setSelectedImage = (index: number) => setImageChoice({ slug, index });
   const [helpfulAnnouncement, setHelpfulAnnouncement] = useState("");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [reportingReview, setReportingReview] = useState<Review | null>(null);
+  const [isReporting, setIsReporting] = useState(false);
 
   const { data: user } = useMeQuery();
   const productQuery = useQueryProductBySlug(slug);
@@ -65,7 +71,27 @@ export const useProductDetailModel = () => {
   const helpfulMutation = useMutationHelpful();
   const pendingHelpfulIds = usePendingHelpfulIds();
 
-  useDocumentTitle(product ? product.name : productQuery.isPending ? undefined : "Produto não encontrado");
+  const followMutation = useMutationFollow();
+  const seoQuery = useQuerySeoProduct(slug);
+
+  // SEO: título, descrição, canonical, Open Graph e JSON-LD Product/AggregateRating/Review
+  useSeo({
+    title: product ? product.name : productQuery.isPending ? undefined : "Produto não encontrado",
+    description: product
+      ? `${product.description} ${
+          product.totalReviews
+            ? `Nota ${product.averageNote?.toFixed(1).replace(".", ",")} de 5 em ${product.totalReviews} ${
+                product.totalReviews === 1 ? "avaliação" : "avaliações"
+              } no ReviewStore.`
+            : "Veja e escreva avaliações no ReviewStore."
+        }`
+      : undefined,
+    path: `/products/${slug}`,
+    image: product?.imageUrl,
+    type: product ? "product" : "website",
+    noindex: !productQuery.isPending && !product,
+    jsonLd: product && seoQuery.data ? buildProductJsonLd(seoQuery.data) : null,
+  });
 
   // O detalhe traz só o id da categoria; o slug (para o link) vem da lista de categorias
   const categorySlug = product?.categorySlug ?? undefined;
@@ -146,6 +172,50 @@ export const useProductDetailModel = () => {
 
   const reviewsTotalElements = reviewsQuery.data?.page.totalElements ?? 0;
 
+  // Seguir o produto: sem login, vai para o login e volta para cá
+  const onToggleFollow = () => {
+    if (!product) return;
+    if (!user) {
+      navigate({ to: "/login", search: { redirect: `/products/${slug}` } });
+      return;
+    }
+    const following = product.followedByMe;
+    followMutation.mutate(
+      { productId: product.id, slug, following },
+      {
+        onSuccess: (result) =>
+          toast.success(
+            result.following
+              ? `Você está seguindo ${product.name}. Vamos avisar quando chegar uma avaliação nova.`
+              : `Você deixou de seguir ${product.name}.`,
+          ),
+        onError: async (error) => {
+          if (error instanceof HttpError && error.status === 401) {
+            await queryClient.resetQueries({ queryKey: ["me"] });
+            toast.error("Sua sessão expirou. Entre novamente para seguir produtos.");
+            return;
+          }
+          toast.error(error instanceof HttpError && error.status && error.status < 500 ? error.message : "Não foi possível atualizar. Tente novamente.");
+        },
+      },
+    );
+  };
+
+  // Denunciar: sem login, vai para o login e volta para a avaliação
+  const openReport = (review: Review) => {
+    if (!user) {
+      navigate({ to: "/login", search: { redirect: `/products/${slug}#review-${review.id}` } });
+      return;
+    }
+    setReportingReview(review);
+  };
+
+  const onReported = (review: Review) => {
+    setReportingReview(null);
+    setHelpfulAnnouncement(`Denúncia da avaliação “${review.title}” enviada.`);
+    toast.success("Denúncia enviada. Obrigado por ajudar a manter as avaliações confiáveis.");
+  };
+
   return {
     slug,
     product,
@@ -157,6 +227,10 @@ export const useProductDetailModel = () => {
 
     images,
     currentImage,
+    lightboxIndex,
+    openLightbox: (index: number) => setLightboxIndex(index),
+    closeLightbox: () => setLightboxIndex(null),
+    setLightboxIndex,
     selectedImage,
     setSelectedImage,
 
@@ -191,6 +265,19 @@ export const useProductDetailModel = () => {
       onToggle: onToggleHelpful,
     },
     helpfulAnnouncement,
+    report: { currentUserId: user?.id, onReport: openReport },
+    reportingReview,
+    closeReport: () => {
+      if (!isReporting) setReportingReview(null);
+    },
+    onReported,
+    isReporting,
+    onReportPendingChange: setIsReporting,
+
+    following: product?.followedByMe ?? false,
+    followersCount: product?.followersCount ?? 0,
+    onToggleFollow,
+    isFollowPending: followMutation.isPending,
 
     relatedProducts,
     isLoadingRelated: !!product?.subCategorieId && relatedQuery.isPending,

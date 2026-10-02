@@ -2,7 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Tokens de cor por tema (canais RGB, usados em tailwind.config.js).
+ * Claro: valores originais da identidade. Escuro: mesmos papéis, com contraste AA verificado.
+ */
 @layer base {
+  :root {
+    color-scheme: light;
+    --c-canvas: 245 247 251; /* #F5F7FB */
+    --c-surface: 255 255 255;
+    --c-ink: 28 36 52; /* #1C2434 */
+    --c-ink-soft: 51 65 85; /* #334155 */
+    --c-muted: 85 98 116; /* #556274 */
+    --c-line: 226 232 240; /* #E2E8F0 */
+    --c-line-strong: 122 136 156; /* #7A889C */
+    --c-brand-50: 238 241 254; /* #EEF1FE */
+    --c-tint-strong: 223 228 253; /* #DFE4FD */
+    --c-brand-700: 48 64 184; /* #3040B8 */
+    --c-brand-800: 40 53 144; /* #283590 */
+    --c-brand-900: 31 42 110; /* #1F2A6E */
+    --c-star-empty: 203 213 225; /* #CBD5E1 */
+    --c-cream: 254 243 199; /* #FEF3C7 */
+    --c-danger: 180 35 24; /* #B42318 */
+    --c-danger-soft: 254 243 242; /* #FEF3F2 */
+    --c-success: 6 118 71; /* #067647 */
+    --c-success-soft: 236 253 243; /* #ECFDF3 */
+    --c-shadow: 28 36 52;
+    --focus-ring: #3c50e0;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --c-canvas: 11 17 32; /* #0B1120 */
+    --c-surface: 21 29 46; /* #151D2E */
+    --c-ink: 232 236 243; /* #E8ECF3 */
+    --c-ink-soft: 199 207 220; /* #C7CFDC */
+    --c-muted: 160 171 190; /* #A0ABBE */
+    --c-line: 42 54 77; /* #2A364D */
+    --c-line-strong: 110 125 150; /* #6E7D96 */
+    --c-brand-50: 30 38 82; /* #1E2652 */
+    --c-tint-strong: 42 52 112; /* #2A3470 */
+    --c-brand-700: 168 179 250; /* #A8B3FA */
+    --c-brand-800: 197 205 252; /* #C5CDFC */
+    --c-brand-900: 225 230 254; /* #E1E6FE */
+    --c-star-empty: 66 80 106; /* #42506A */
+    --c-cream: 62 46 12; /* #3E2E0C */
+    --c-danger: 253 132 122; /* #FD847A */
+    --c-danger-soft: 60 24 28; /* #3C181C */
+    --c-success: 82 211 146; /* #52D392 */
+    --c-success-soft: 14 46 34; /* #0E2E22 */
+    --c-shadow: 0 0 0;
+    --focus-ring: #98a5f6;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     scroll-padding-top: 5rem;
@@ -21,9 +73,9 @@
     text-wrap: balance;
   }
 
-  /* Foco visível consistente em todos os elementos interativos */
+  /* Foco visível consistente em todos os elementos interativos (>= 3:1 nos dois temas) */
   :focus-visible {
-    outline: 3px solid #3c50e0;
+    outline: 3px solid var(--focus-ring);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -44,11 +96,20 @@
   }
 
   .skeleton {
-    @apply rounded-md bg-[#E2E8F0] motion-safe:animate-shimmer;
+    @apply rounded-md bg-line motion-safe:animate-shimmer;
   }
 
   .link {
     @apply font-medium text-brand-700 underline decoration-brand-300 decoration-2 underline-offset-4 transition-colors hover:text-brand-900 hover:decoration-brand-600;
+  }
+
+  /* Elevação discreta ao passar o mouse (desligada com prefers-reduced-motion) */
+  .lift {
+    @apply transition-[transform,box-shadow] duration-200 ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-within:-translate-y-0.5;
+  }
+
+  .eyebrow {
+    @apply text-sm font-semibold uppercase tracking-wider text-brand-700;
   }
 }
 

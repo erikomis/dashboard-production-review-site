@@ -5,6 +5,8 @@ import { Breadcrumb } from "@/modules/site/components/Breadcrumb";
 import { Pagination } from "@/modules/site/components/Pagination";
 import { ReviewCardSkeleton } from "@/modules/site/components/ReviewCard";
 import { StarRating } from "@/modules/site/components/StarRating";
+import { ReviewGallery } from "@/modules/site/components/ReviewGallery";
+import { ReviewReply } from "@/modules/site/components/ReviewReply";
 import { Button } from "@/shared/components/button";
 import { buttonVariants } from "@/shared/components/button-variants";
 import { Modal } from "@/shared/components/modal";
@@ -43,7 +45,7 @@ const MyReviewItem = ({
   return (
     <article
       className={cn(
-        "rounded-2xl border bg-surface p-5 shadow-card sm:p-6",
+        "rounded-2xl border bg-surface p-5 shadow-card transition-shadow hover:shadow-raised sm:p-6",
         hidden ? "border-danger/30" : "border-line",
       )}
     >
@@ -71,6 +73,9 @@ const MyReviewItem = ({
       <p className="mt-1.5 whitespace-pre-line break-words text-[0.95rem] leading-relaxed text-ink-soft">
         {review.description}
       </p>
+
+      <ReviewGallery images={review.images ?? []} author="você" title={review.title} />
+      {review.reply && <ReviewReply reply={review.reply} />}
 
       {hidden && (
         <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-danger-soft px-4 py-3 text-sm text-ink-soft">

@@ -20,10 +20,10 @@ interface ProductImageProps {
 }
 
 const TONES = [
-  "from-brand-100 via-brand-50 to-[#F5F7FB]",
-  "from-[#E0F2FE] via-[#F0F9FF] to-brand-50",
-  "from-[#EDE9FE] via-[#F5F3FF] to-brand-50",
-  "from-[#FEF3C7] via-[#FFFBEB] to-brand-50",
+  "from-tint-strong via-brand-50 to-canvas",
+  "from-[#E0F2FE] via-[#F0F9FF] to-brand-50 dark:from-[#0C2A44] dark:via-[#10233A] dark:to-brand-50",
+  "from-[#EDE9FE] via-[#F5F3FF] to-brand-50 dark:from-[#2A1F52] dark:via-[#1E1A40] dark:to-brand-50",
+  "from-[#FEF3C7] via-[#FFFBEB] to-brand-50 dark:from-[#3A2C0E] dark:via-[#251F14] dark:to-brand-50",
 ];
 
 const PHOTO_PADDING: Record<ImageSize, string> = {
@@ -54,7 +54,7 @@ export const ProductImage = ({
     return (
       <div
         className={cn(
-          "relative flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_40%,#FFFFFF_0%,#F1F4F9_100%)]",
+          "relative flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_40%,#FFFFFF_0%,#F1F4F9_100%)] dark:bg-[radial-gradient(circle_at_50%_40%,#F3F5F9_0%,#DCE2EC_100%)]",
           className,
         )}
       >

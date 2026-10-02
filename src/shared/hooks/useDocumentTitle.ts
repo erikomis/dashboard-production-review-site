@@ -1,10 +1,5 @@
-import { useEffect } from "react";
+import { useSeo } from "./useSeo";
 
-const SITE_NAME = "ReviewStore";
-
-/** Define o <title> da página (anunciado por leitores de tela ao navegar). */
-export const useDocumentTitle = (title?: string) => {
-  useEffect(() => {
-    document.title = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Avaliações reais de produtos`;
-  }, [title]);
-};
+/** Atalho para páginas que só precisam de título (ex.: telas de conta, que não são indexadas). */
+export const useDocumentTitle = (title?: string, options: { noindex?: boolean } = {}) =>
+  useSeo({ title, noindex: options.noindex });

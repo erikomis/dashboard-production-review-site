@@ -8,7 +8,7 @@ export const LayoutAuth = () => {
     <div className="grid min-h-screen lg:grid-cols-[1fr_1.1fr]">
       <a
         href="#conteudo"
-        className="sr-only z-50 rounded-lg bg-ink px-4 py-3 font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+        className="sr-only z-50 rounded-lg bg-ink px-4 py-3 font-semibold text-surface focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
         Pular para o conteúdo
       </a>

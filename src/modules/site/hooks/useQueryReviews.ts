@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ReviewsService } from "@/modules/site/services/reviews.service";
+import { UsersService } from "@/modules/site/services/users.service";
 import type { ProductReviewsParams } from "@/shared/types/review";
 
 export const reviewKeys = {
@@ -10,6 +11,7 @@ export const reviewKeys = {
   summary: (productId: number) => ["reviews", "summary", productId] as const,
   mine: ["reviews", "me"] as const,
   minePage: (page: number, size: number) => ["reviews", "me", page, size] as const,
+  byUser: (username: string, page: number, size: number) => ["reviews", "user", username, page, size] as const,
 };
 
 export const useQueryReviewsByProduct = (productId: number | undefined, params: ProductReviewsParams) =>
@@ -45,4 +47,14 @@ export const useQueryMyReviews = (page: number, size: number, enabled = true) =>
     placeholderData: keepPreviousData,
     // dados da conta: sempre confere ao abrir a página
     staleTime: 0,
+  });
+
+/** Avaliações visíveis de um usuário (perfil público). */
+export const useQueryUserReviews = (username: string, page: number, size: number) =>
+  useQuery({
+    queryKey: reviewKeys.byUser(username, page, size),
+    queryFn: () => UsersService.listReviews(username, page, size),
+    enabled: !!username,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
   });

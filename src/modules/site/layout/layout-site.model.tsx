@@ -5,11 +5,14 @@ import { useMeQuery } from "@/shared/hooks/useMeQuery";
 import { logoutService } from "@/shared/services/logout";
 import { queryClient } from "@/shared/libs/react-query";
 import { useQueryCategories } from "@/modules/site/hooks/useQueryCategories";
+import { notificationKeys, useQueryUnreadCount } from "@/modules/site/hooks/useNotifications";
 
 export const useLayoutSiteModel = () => {
   const navigate = useNavigate();
   const { data: user, isPending: isLoadingUser } = useMeQuery();
   const { data: categories } = useQueryCategories();
+  // Mesmo cache do sino: o contador aparece também no menu do usuário
+  const { data: unreadCount = 0 } = useQueryUnreadCount(!!user);
 
   const location = useRouterState({ select: (s) => s.location });
   const pathname = location.pathname;
@@ -114,7 +117,15 @@ export const useLayoutSiteModel = () => {
       await queryClient.resetQueries({ queryKey: ["me"] });
       // Dados ligados à conta: "minhas avaliações" e as marcações de "útil"
       queryClient.removeQueries({ queryKey: ["reviews", "me"] });
+      queryClient.removeQueries({ queryKey: notificationKeys.all });
+      queryClient.removeQueries({ queryKey: ["preferences"] });
+      queryClient.removeQueries({ queryKey: ["following"] });
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+      // Páginas da conta não fazem sentido sem login
+      if (["/minhas-avaliacoes", "/notificacoes", "/preferencias", "/seguindo"].includes(pathname)) {
+        navigate({ to: "/" });
+      }
       setUserMenuOpen(false);
       setMobileOpen(false);
       toast.info("Você saiu da sua conta.");
@@ -132,6 +143,9 @@ export const useLayoutSiteModel = () => {
     user,
     isAuthenticated: !!user,
     isLoadingUser,
+    unreadCount,
+    closeUserMenu: () => setUserMenuOpen(false),
+    closeMobile: () => setMobileOpen(false),
     categories: categories ?? [],
     pathname,
     loginRedirect,

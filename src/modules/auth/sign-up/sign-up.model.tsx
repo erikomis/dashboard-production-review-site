@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { HttpError } from "@/shared/services/http-error";
+import { HttpError, isRateLimited } from "@/shared/services/http-error";
+import { useCooldown } from "@/shared/hooks/useCooldown";
+
 import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
 import { SchemaSignUp } from "./sign-up.schema";
 import { SignUpValues } from "./sign-up.type";
@@ -18,12 +20,14 @@ const getErrorMessage = (error: unknown) => {
 export const useSignUpModel = () => {
   useDocumentTitle("Criar conta");
   const [serverError, setServerError] = useState<string>();
+  const cooldown = useCooldown();
   /** E-mail para o qual o link de ativação foi enviado (tela de sucesso) */
   const [createdEmail, setCreatedEmail] = useState<string>();
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<SignUpValues>({
     resolver: zodResolver(SchemaSignUp),
@@ -39,8 +43,12 @@ export const useSignUpModel = () => {
       setCreatedEmail(email);
     } catch (er) {
       setServerError(getErrorMessage(er));
+      // 429: bloqueia o envio até acabar o tempo do Retry-After
+      if (isRateLimited(er)) cooldown.start((er as HttpError).retryAfter ?? 60);
     }
   };
 
-  return { onSubmit, handleSubmit, register, errors, isPending, serverError, createdEmail };
+  return {
+    retryIn: cooldown.remaining,
+    passwordValue: watch("password") ?? "", onSubmit, handleSubmit, register, errors, isPending, serverError, createdEmail };
 };

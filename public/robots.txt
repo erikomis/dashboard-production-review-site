@@ -1,0 +1,16 @@
+# ReviewStore — site público
+# Arquivo estático: ao publicar, troque o domínio da linha Sitemap pela URL pública da API
+# (o mesmo valor de VITE_API_URL + /seo/sitemap.xml).
+User-agent: *
+Allow: /
+Disallow: /minhas-avaliacoes
+Disallow: /notificacoes
+Disallow: /preferencias
+Disallow: /seguindo
+Disallow: /login
+Disallow: /sign-up
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /activate-account/
+
+Sitemap: http://localhost:8084/api/v1/seo/sitemap.xml

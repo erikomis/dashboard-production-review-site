@@ -3,7 +3,9 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import { HttpError } from "@/shared/services/http-error";
+import { HttpError, isRateLimited } from "@/shared/services/http-error";
+import { useCooldown } from "@/shared/hooks/useCooldown";
+
 import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
 import { SchemaResetPassword } from "./reset-password.schema";
 import { ResetPasswordValues } from "./reset-password.type";
@@ -25,10 +27,12 @@ export const useResetPasswordModel = () => {
   const navigate = useNavigate();
   const { email: emailFromUrl } = useSearch({ from: "/auth/reset-password" });
   const [serverError, setServerError] = useState<string>();
+  const cooldown = useCooldown();
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordValues>({
     resolver: zodResolver(SchemaResetPassword),
@@ -43,10 +47,14 @@ export const useResetPasswordModel = () => {
       navigate({ to: "/login" });
     } catch (er) {
       setServerError(getErrorMessage(er));
+      // 429: bloqueia o envio até acabar o tempo do Retry-After
+      if (isRateLimited(er)) cooldown.start((er as HttpError).retryAfter ?? 60);
     }
   };
 
   return {
+    retryIn: cooldown.remaining,
+    passwordValue: watch("password") ?? "",
     register,
     handleSubmit,
     errors,

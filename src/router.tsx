@@ -16,6 +16,10 @@ import { SchemaProductDetailSearch } from "./modules/site/view/product-detail/pr
 import { SchemaRankingSearch } from "./modules/site/view/ranking/ranking.schema";
 import { SchemaCategorySearch } from "./modules/site/view/category/category.schema";
 import { SchemaMyReviewsSearch } from "./modules/site/view/my-reviews/my-reviews.schema";
+import { SchemaProfileSearch } from "./modules/site/view/profile/profile.schema";
+import { SchemaNotificationsSearch } from "./modules/site/view/notifications/notifications.schema";
+import { SchemaFollowingSearch } from "./modules/site/view/following/following.schema";
+import { profileQueryOptions } from "./modules/site/hooks/useQueryProfile";
 import { SchemaSignInSearch } from "./modules/auth/sign-in/sign-in.schema";
 import { SchemaResetPasswordSearch } from "./modules/auth/reset-password/reset-password.schema";
 
@@ -30,6 +34,10 @@ const ProductDetailPage = withSuspense(lazy(() => import("./modules/site/view/pr
 const RankingPage = withSuspense(lazy(() => import("./modules/site/view/ranking/RankingPage")));
 const CategoryPage = withSuspense(lazy(() => import("./modules/site/view/category/CategoryPage")));
 const MyReviewsPage = withSuspense(lazy(() => import("./modules/site/view/my-reviews/MyReviewsPage")));
+const ProfilePage = withSuspense(lazy(() => import("./modules/site/view/profile/ProfilePage")));
+const NotificationsPage = withSuspense(lazy(() => import("./modules/site/view/notifications/NotificationsPage")));
+const PreferencesPage = withSuspense(lazy(() => import("./modules/site/view/preferences/PreferencesPage")));
+const FollowingPage = withSuspense(lazy(() => import("./modules/site/view/following/FollowingPage")));
 
 /** Usuário logado (ou null), reaproveitando o cache de ["me"]. */
 const getCurrentUser = () =>
@@ -139,17 +147,58 @@ const categoryRoute = createRoute({
   component: CategoryPage,
 });
 
-// Exige login: sem sessão, vai para /login e volta para cá depois de entrar
+/** Rotas da conta: sem sessão, vão para /login e voltam para cá depois de entrar. */
+const requireUser = async ({ location }: { location: { href: string } }) => {
+  const user = await getCurrentUser();
+  if (!user) throw redirect({ to: "/login", search: { redirect: location.href } });
+};
+
 const myReviewsRoute = createRoute({
   getParentRoute: () => siteLayoutRoute,
   path: "/minhas-avaliacoes",
   validateSearch: (search) => SchemaMyReviewsSearch.parse(search),
-  beforeLoad: async ({ location }) => {
-    const user = await getCurrentUser();
-    if (!user) throw redirect({ to: "/login", search: { redirect: location.href } });
-  },
+  beforeLoad: requireUser,
   errorComponent: RouteError,
   component: MyReviewsPage,
+});
+
+// Perfil público
+const profileRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: "/u/$username",
+  validateSearch: (search) => SchemaProfileSearch.parse(search),
+  loader: ({ params }) => {
+    queryClient.prefetchQuery(profileQueryOptions(params.username));
+  },
+  errorComponent: RouteError,
+  component: ProfilePage,
+});
+
+const notificationsRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: "/notificacoes",
+  validateSearch: (search) => SchemaNotificationsSearch.parse(search),
+  beforeLoad: requireUser,
+  errorComponent: RouteError,
+  component: NotificationsPage,
+});
+
+// Os e-mails de notificação apontam para {SITE_URL}/preferencias
+const preferencesRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: "/preferencias",
+  beforeLoad: requireUser,
+  errorComponent: RouteError,
+  component: PreferencesPage,
+});
+
+const followingRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: "/seguindo",
+  validateSearch: (search) => SchemaFollowingSearch.parse(search),
+  beforeLoad: requireUser,
+  errorComponent: RouteError,
+  component: FollowingPage,
 });
 
 const notFoundRoute = createRoute({
@@ -173,6 +222,10 @@ const routeTree = rootRoute.addChildren([
     rankingRoute,
     categoryRoute,
     myReviewsRoute,
+    profileRoute,
+    notificationsRoute,
+    preferencesRoute,
+    followingRoute,
     notFoundRoute,
   ]),
 ]);

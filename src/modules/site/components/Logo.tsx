@@ -21,7 +21,7 @@ export const Logo = ({ className, tone = "dark" }: LogoProps) => (
         tone === "dark" ? "text-ink" : "text-white",
       )}
     >
-      Review<span className={tone === "dark" ? "text-brand-600" : "text-brand-200"}>Store</span>
+      Review<span className={tone === "dark" ? "text-brand-600 dark:text-brand-300" : "text-brand-200"}>Store</span>
     </span>
   </span>
 );

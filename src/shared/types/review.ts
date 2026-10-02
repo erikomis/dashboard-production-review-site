@@ -1,17 +1,28 @@
+import type { Page } from "./page";
+
 export interface Review {
-  id: string;
+  id: number;
   title: string;
-  content: string;
-  rating: number;
-  productId: string;
-  product?: { id: string; name: string };
-  createdAt?: string;
+  description: string;
+  note: number;
+  productId: number;
+  userId: number;
+  createdAt: string;
+  productName: string | null;
+  userName: string | null;
 }
 
-export interface ReviewPage {
-  content: Review[];
-  totalPages: number;
-  totalElements: number;
-  number: number;
-  size: number;
+export type ReviewPage = Page<Review>;
+
+export interface ReviewSummary {
+  productId: number;
+  totalReviews: number;
+  averageNote: number;
+}
+
+export interface CreateReviewDto {
+  title: string;
+  description: string;
+  note: number;
+  productId: number;
 }

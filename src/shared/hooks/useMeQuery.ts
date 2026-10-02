@@ -5,5 +5,7 @@ export const useMeQuery = () =>
   useQuery({
     queryKey: ["me"],
     queryFn: () => me(),
-    retry: 1,
+    // 401 = visitante não logado: não faz sentido tentar de novo
+    retry: false,
+    staleTime: 1000 * 60 * 5,
   });

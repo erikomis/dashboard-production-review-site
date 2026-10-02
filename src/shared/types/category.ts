@@ -1,13 +1,19 @@
-export interface Category {
-  id: string;
+export interface SubCategory {
+  id: number;
   name: string;
   description?: string;
+  slug: string;
+  categorieId: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface SubCategory {
-  id: string;
+export interface Category {
+  id: number;
   name: string;
   description?: string;
-  categoryId?: string;
-  category?: Pick<Category, "id" | "name">;
+  slug: string;
+  subCategories: SubCategory[];
+  createdAt?: string;
+  updatedAt?: string;
 }

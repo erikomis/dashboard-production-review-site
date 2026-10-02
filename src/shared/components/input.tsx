@@ -1,73 +1,85 @@
-import { EyeOff } from "lucide-react";
-import React, { useState } from "react";
-import { tv } from "tailwind-variants";
+import { Eye, EyeOff } from "lucide-react";
+import React, { useId, useState } from "react";
 import { cn } from "../utils/utils";
+import { Label } from "./label";
+import { FieldMessage } from "./field-message";
+import { describedBy } from "../utils/a11y";
 
-const InputStyle = tv({
-  base: "w-full py-4 pl-6 pr-10 text-black bg-transparent border rounded-lg outline-none border-stroke focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary",
-  variants: {
-    size: {
-      sm: "py-2 pl-4 pr-8",
-      md: "py-4 pl-6 pr-10",
-      lg: "py-6 pl-8 pr-12",
-    },
-    color: {
-      primary: "text-primary focus:border-primary dark:focus:border-primary",
-      secondary:
-        "text-secondary focus:border-secondary dark:focus:border-secondary",
-      danger: "text-danger focus:border-danger dark:focus:border-danger",
-      success: "text-success focus:border-success dark:focus:border-success",
-    },
-  },
-  defaultVariants: {
-    size: "md",
-    color: "primary",
-  },
-});
+export const fieldClassName =
+  "block w-full rounded-lg border bg-surface px-3.5 text-base text-ink placeholder:text-muted/80 transition-colors hover:border-ink focus:border-brand-600 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand-600/35 disabled:cursor-not-allowed disabled:bg-canvas";
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
-  sizeType?: "sm" | "md" | "lg";
-  color?: "primary" | "secondary" | "danger" | "success";
-  children?: React.ReactNode;
-  icon?: React.ReactNode;
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
   error?: string;
+  hint?: string;
+  /** Ícone decorativo à esquerda */
+  icon?: React.ReactNode;
+  optional?: boolean;
+  containerClassName?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ sizeType, color, type = "text", children, ...props }, ref) => {
-    const [open, setOpen] = useState(false);
+  (
+    { label, error, hint, icon, optional, id, type = "text", className, containerClassName, ...props },
+    ref,
+  ) => {
+    const autoId = useId();
+    const inputId = id ?? `${props.name ?? "field"}-${autoId}`;
+    const messageId = `${inputId}-message`;
+    const [visible, setVisible] = useState(false);
+    const isPassword = type === "password";
 
     return (
-      <div className="mb-2">
-        {children}
+      <div className={cn("mb-4", containerClassName)}>
+        <Label value={label} htmlFor={inputId} optional={optional} />
         <div className="relative">
-          <input
-            {...props}
-            className={cn(InputStyle({ size: sizeType, color }), props.className)}
-            ref={ref}
-            type={type === "password" && open ? "text" : type}
-          />
-          {props.icon && type !== "password" && (
-            <span className="absolute right-4 top-4">{props.icon}</span>
-          )}
-          {type === "password" && (
+          {icon && (
             <span
-              className="absolute cursor-pointer right-4 top-4"
-              onClick={() => setOpen(!open)}
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-muted [&>svg]:h-5 [&>svg]:w-5"
             >
-              {open ? <EyeOff size={24} /> : <>{props.icon}</>}
+              {icon}
             </span>
           )}
+          <input
+            {...props}
+            ref={ref}
+            id={inputId}
+            type={isPassword && visible ? "text" : type}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy(messageId, error, hint)}
+            className={cn(
+              fieldClassName,
+              "h-12",
+              icon && "pl-11",
+              isPassword && "pr-12",
+              error ? "border-danger hover:border-danger" : "border-line-strong",
+              className,
+            )}
+          />
+          {isPassword && (
+            <button
+              type="button"
+              onClick={() => setVisible((v) => !v)}
+              aria-label={visible ? "Ocultar senha" : "Mostrar senha"}
+              aria-pressed={visible}
+              aria-controls={inputId}
+              className="absolute inset-y-0 right-1 my-1 flex w-10 items-center justify-center rounded-md text-muted hover:text-ink"
+            >
+              {visible ? (
+                <EyeOff aria-hidden="true" className="h-5 w-5" />
+              ) : (
+                <Eye aria-hidden="true" className="h-5 w-5" />
+              )}
+            </button>
+          )}
         </div>
-        {props.error && (
-          <span className="my-2 text-xs font-bold text-danger">
-            {props.error}
-          </span>
-        )}
+        <FieldMessage id={messageId} error={error} hint={hint} />
       </div>
     );
-  }
+  },
 );
+
+Input.displayName = "Input";
 
 export { Input };

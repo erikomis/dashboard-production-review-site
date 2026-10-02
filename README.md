@@ -134,6 +134,36 @@ npm run dev
 |---|---|---|
 | `VITE_API_URL` | `http://localhost:8084/api/v1` | URL base da API, incluindo `/api/v1` |
 
+## 🐳 Docker e deploy
+
+As imagens são publicadas **privadas** no GitHub Container Registry: `ghcr.io/erikomis/dashboard-production-review-site`. A URL da API entra como `--build-arg VITE_API_URL`, porque o Vite embute o valor no bundle durante o build.
+
+```bash
+docker build --build-arg VITE_API_URL=http://localhost:8084/api/v1 -t dashboard-production-review-site .
+docker run -p 5174:5174 dashboard-production-review-site   # http://localhost:5174
+```
+
+```mermaid
+flowchart LR
+    T["testings<br/>lint + build<br/>push na main"] -->|sucesso| P["publish<br/>build do commit testado"]
+    P --> GHCR[("ghcr.io (privado)<br/>latest · sha-commit")]
+    GHCR --> D["deploy<br/>login temporário + pull + up"]
+    D --> VPS["VPS<br/>docker compose"]
+```
+
+- **publish**: só roda depois que os testes do push na `main` passam; builda exatamente o commit testado e publica as tags `latest` e `sha-<commit>`, autenticando com o `GITHUB_TOKEN` do próprio workflow.
+- **deploy**: entra na VPS por SSH, faz login no GHCR com o token temporário do job, sobe a imagem daquele commit e faz logout. **Nenhuma credencial fica salva na VPS.** O deploy fica desligado até você criar a variável `DEPLOY_ENABLED=true`.
+
+| Tipo | Nome | Para quê |
+|---|---|---|
+| Secret | `HOST`, `USERNAME`, `SSH_KEY` | Acesso SSH à VPS |
+| Variável | `VITE_API_URL` | URL da API embutida no build (ex.: `https://api.seudominio.com/api/v1`). Sem ela, o publish falha com uma mensagem clara |
+| Variável (opcional) | `DEPLOY_DIR` | Pasta do `docker-compose.yml` na VPS (padrão: `site`) |
+| Variável | `DEPLOY_ENABLED` | Crie com o valor `true` para liberar o deploy. Sem ela, o workflow só publica a imagem |
+
+> [!IMPORTANT]
+> Antes do primeiro deploy, copie o `docker-compose.yml` deste repositório para a pasta da VPS. Depois do primeiro publish, confira em **Perfil → Packages → dashboard-production-review-site → Package settings** que a visibilidade está **Private**.
+
 ## 🏛 Arquitetura
 
 O projeto segue **MVVM** por tela. A view é só apresentação; toda a lógica fica no _view-model_ (um hook), que conversa com a API por meio de hooks do React Query e services.

@@ -2,17 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --color-primary: #3b82f6;
-  --color-stroke: #e5e7eb;
-  --color-boxdark: #1f2937;
-  --color-boxdark-2: #111827;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+    font-feature-settings: "ss01", "cv11";
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+    text-wrap: balance;
+  }
+
+  /* Foco visível consistente em todos os elementos interativos */
+  :focus-visible {
+    outline: 3px solid #0b7a56;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .on-dark :focus-visible {
+    outline-color: #fff3d6;
+  }
+
+  ::selection {
+    background: #d2eee1;
+    color: #13201a;
+  }
 }
 
-@layer base {
-  body {
-    background-color: #f9fafb;
-    color: #111827;
-    @apply antialiased;
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-content px-4 sm:px-6 lg:px-8;
+  }
+
+  .skeleton {
+    @apply rounded-md bg-[#E9E7DF] motion-safe:animate-shimmer;
+  }
+
+  .link {
+    @apply font-medium text-brand-700 underline decoration-brand-300 decoration-2 underline-offset-4 transition-colors hover:text-brand-900 hover:decoration-brand-600;
+  }
+}
+
+/* Respeita quem prefere menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -2,61 +2,73 @@
 import defaultTheme from "tailwindcss/defaultTheme";
 
 export default {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
-  darkMode: "class",
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
-    fontFamily: {
-      satoshi: ["sans-serif"],
-    },
     screens: {
-      "2xsm": "375px",
-      xsm: "425px",
-      "3xl": "2000px",
+      xs: "400px",
       ...defaultTheme.screens,
     },
     extend: {
+      fontFamily: {
+        sans: ['"Instrument Sans"', ...defaultTheme.fontFamily.sans],
+        display: ['"Bricolage Grotesque"', '"Instrument Sans"', ...defaultTheme.fontFamily.sans],
+      },
       colors: {
-        current: "currentColor",
-        transparent: "transparent",
-        white: "#FFFFFF",
-        black: "#1C2434",
-        "black-2": "#010101",
-        body: "#64748B",
-        bodydark: "#AEB7C0",
-        bodydark1: "#DEE4EE",
-        bodydark2: "#8A99AF",
-        primary: "#3C50E0",
-        secondary: "#80CAEE",
-        stroke: "#E2E8F0",
-        "gray-light": "#EFF4FB",
-        graydark: "#333A48",
-        "gray-2": "#F7F9FC",
-        whiten: "#F1F5F9",
-        whiter: "#F5F7FD",
-        boxdark: "#24303F",
-        "boxdark-2": "#1A222C",
-        strokedark: "#2E3A47",
-        "form-strokedark": "#3d4d60",
-        "form-input": "#1d2a39",
-        success: "#219653",
-        danger: "#D34053",
-        warning: "#FFA70B",
-        "meta-3": "#10B981",
-        "meta-6": "#FFBA00",
+        // Todos os pares texto/fundo usados abaixo atingem contraste AA (>= 4.5:1).
+        ink: {
+          DEFAULT: "#13201A", // texto principal (16:1 sobre canvas)
+          soft: "#3A4741", // texto secundário forte
+        },
+        muted: "#56625C", // texto auxiliar (6:1 sobre branco)
+        canvas: "#F7F6F1", // fundo da página
+        surface: "#FFFFFF",
+        line: {
+          DEFAULT: "#E3E1D8",
+          strong: "#8A948F", // bordas de campos (3:1 sobre branco)
+        },
+        brand: {
+          50: "#ECF7F2",
+          100: "#D2EEE1",
+          200: "#A6DCC4",
+          300: "#6FC3A1",
+          500: "#14946A",
+          600: "#0B7A56", // botões/links (5.3:1 com branco)
+          700: "#075F43",
+          800: "#064A35",
+          900: "#04382A",
+          950: "#022019",
+        },
+        primary: "#0B7A56",
+        star: {
+          DEFAULT: "#C26A00", // estrela preenchida (3.6:1 sobre branco)
+          empty: "#D9D6CB",
+        },
+        cream: "#FFF3D6",
+        danger: {
+          DEFAULT: "#B42318", // 6.2:1 sobre branco
+          soft: "#FEF3F2",
+        },
+        success: {
+          DEFAULT: "#067647",
+          soft: "#ECFDF3",
+        },
       },
       boxShadow: {
-        default: "0px 8px 13px -3px rgba(0, 0, 0, 0.07)",
-        card: "0px 1px 3px rgba(0, 0, 0, 0.12)",
+        card: "0 1px 2px rgba(19, 32, 26, 0.06), 0 1px 1px rgba(19, 32, 26, 0.04)",
+        raised: "0 12px 32px -12px rgba(19, 32, 26, 0.22)",
       },
-      spacing: {
-        4.5: "1.125rem",
-        5.5: "1.375rem",
-        6.5: "1.625rem",
-        7.5: "1.875rem",
-        10.5: "2.625rem",
-        12.5: "3.125rem",
-        17.5: "4.375rem",
-        22.5: "5.625rem",
+      maxWidth: {
+        content: "76rem",
+      },
+      keyframes: {
+        shimmer: {
+          "0%": { opacity: "1" },
+          "50%": { opacity: "0.55" },
+          "100%": { opacity: "1" },
+        },
+      },
+      animation: {
+        shimmer: "shimmer 1.6s ease-in-out infinite",
       },
     },
   },

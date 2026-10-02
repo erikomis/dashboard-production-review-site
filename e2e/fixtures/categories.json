@@ -1,0 +1,16 @@
+[
+  {
+    "id": 5, "name": "Bebidas", "description": "Bebidas — catálogo importado do Open Food Facts", "slug": "bebidas",
+    "subCategories": [
+      { "id": 9, "name": "Cafés", "description": "Cafés torrados, moídos e em cápsula", "slug": "cafes", "categorieId": 5, "createdAt": "2026-10-02T03:10:00Z", "updatedAt": "2026-10-02T03:10:00Z" }
+    ],
+    "createdAt": "2026-10-02T03:10:00Z", "updatedAt": "2026-10-02T03:10:00Z"
+  },
+  {
+    "id": 1, "name": "Eletrônicos", "description": "Aparelhos eletrônicos", "slug": "eletronicos",
+    "subCategories": [
+      { "id": 1, "name": "Celulares", "description": "Smartphones", "slug": "celulares", "categorieId": 1, "createdAt": "2026-10-01T23:14:44Z", "updatedAt": "2026-10-01T23:14:44Z" }
+    ],
+    "createdAt": "2026-10-01T23:14:44Z", "updatedAt": "2026-10-01T23:14:44Z"
+  }
+]

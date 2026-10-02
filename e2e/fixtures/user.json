@@ -1,0 +1,8 @@
+{
+  "id": 2,
+  "name": "Usuário Teste",
+  "email": "usuario@local.dev",
+  "username": "usuario",
+  "active": true,
+  "roles": [{ "id": 2, "name": "USER", "permissions": [{ "id": 1, "name": "READ_PRIVILEGES" }] }]
+}

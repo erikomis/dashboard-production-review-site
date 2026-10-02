@@ -1,0 +1,25 @@
+[
+  {
+    "id": 12, "title": "Ótimo café", "description": "Rápida e silenciosa, faz um espresso encorpado em menos de um minuto.",
+    "note": 5, "productId": 3, "userId": 7, "createdAt": "2026-10-02T12:40:00Z",
+    "productName": "Cafeteira Express", "productSlug": "cafeteira-express", "userName": "Ana Souza", "userUsername": "ana",
+    "helpfulCount": 4, "helpfulByMe": false, "status": "VISIBLE", "moderationReason": null, "moderatedAt": null,
+    "images": [{ "id": 21, "url": "/api/v1/files/reviews/12/9f1c2b.jpg" }, { "id": 22, "url": "/api/v1/files/reviews/12/77aa01.jpg" }],
+    "reportedByMe": false, "reportsCount": 0,
+    "reply": { "text": "Obrigado, Ana! Que bom que a cafeteira atendeu bem.", "authorName": "Administrador", "repliedAt": "2026-10-02T13:05:00Z" }
+  },
+  {
+    "id": 2, "title": "Ok", "description": "Esquenta um pouco, mas a bateria aguenta o dia.",
+    "note": 4, "productId": 3, "userId": 2, "createdAt": "2026-10-01T23:14:49Z",
+    "productName": "Cafeteira Express", "productSlug": "cafeteira-express", "userName": "Usuário Teste", "userUsername": "usuario",
+    "helpfulCount": 1, "helpfulByMe": false, "status": "VISIBLE", "moderationReason": null, "moderatedAt": null,
+    "images": [], "reportedByMe": false, "reportsCount": 0, "reply": null
+  },
+  {
+    "id": 1, "title": "Muito bom", "description": "Bateria dura o dia todo e a câmera é ótima à noite.",
+    "note": 4, "productId": 1, "userId": 2, "createdAt": "2026-10-01T23:14:44Z",
+    "productName": "Smartphone X", "productSlug": "smartphone-x", "userName": "Usuário Teste", "userUsername": "usuario",
+    "helpfulCount": 0, "helpfulByMe": false, "status": "VISIBLE", "moderationReason": null, "moderatedAt": null,
+    "images": [], "reportedByMe": false, "reportsCount": 0, "reply": null
+  }
+]

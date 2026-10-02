@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, LockKeyhole, AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, LockKeyhole, TriangleAlert } from "lucide-react";
 import { StarRatingInput } from "@/modules/site/components/StarRatingInput";
+import { PhotoPicker } from "@/modules/site/components/photo-picker/PhotoPicker";
 import { Button } from "@/shared/components/button";
 import { buttonVariants } from "@/shared/components/button-variants";
 import { Input } from "@/shared/components/input";
@@ -22,13 +23,15 @@ export const CreateReviewView = ({
   descriptionLength,
   titleMax,
   descriptionMax,
+  photos,
   isPending,
+  isUploadingPhotos,
   status,
 }: CreateReviewViewProps) => {
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-start gap-4 rounded-2xl border border-line bg-surface p-6 shadow-card sm:flex-row sm:items-center sm:p-8">
-        <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+        <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-tint text-brand-700">
           <LockKeyhole className="h-6 w-6" />
         </span>
         <div className="flex-1">
@@ -87,17 +90,27 @@ export const CreateReviewView = ({
         error={errors.description?.message}
       />
 
+      <PhotoPicker photos={photos} disabled={isPending} />
+
       {/* Mensagens assíncronas anunciadas por leitores de tela */}
       <div aria-live="polite" role="status" className="empty:hidden">
         {isPending && (
-          <p className="mb-4 rounded-lg bg-brand-50 px-4 py-3 text-sm font-medium text-brand-800">
-            Enviando sua avaliação… isso pode levar alguns segundos.
+          <p className="mb-4 rounded-lg bg-tint px-4 py-3 text-sm font-medium text-brand-800">
+            {isUploadingPhotos
+              ? "Avaliação salva. Enviando as fotos…"
+              : "Enviando sua avaliação… isso pode levar alguns segundos."}
           </p>
         )}
-        {!isPending && status.type === "success" && (
+        {!isPending && status.type === "success" && !status.photoWarning && (
           <p className="mb-4 flex items-center gap-2 rounded-lg bg-success-soft px-4 py-3 text-sm font-medium text-success">
             <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0" />
             Avaliação publicada! Ela já aparece na lista acima.
+          </p>
+        )}
+        {!isPending && status.type === "success" && status.photoWarning && (
+          <p className="mb-4 flex items-start gap-2 rounded-lg bg-cream px-4 py-3 text-sm font-medium text-ink">
+            <TriangleAlert aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-star" />
+            {status.photoWarning}
           </p>
         )}
       </div>
@@ -118,7 +131,7 @@ export const CreateReviewView = ({
       </div>
 
       <Button type="submit" size="lg" loading={isPending} className="w-full sm:w-auto">
-        {isPending ? "Enviando avaliação…" : "Publicar avaliação"}
+        {isUploadingPhotos ? "Enviando fotos…" : isPending ? "Enviando avaliação…" : "Publicar avaliação"}
       </Button>
     </form>
   );

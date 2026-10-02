@@ -4,11 +4,19 @@ import type {
   CreateReviewDto,
   HelpfulResult,
   ProductReviewsParams,
+  ReportReviewDto,
   Review,
+  ReviewImage,
   ReviewPage,
+  ReviewReport,
   ReviewSummary,
   UpdateReviewDto,
 } from "@/shared/types/review";
+
+/** Regras de fotos da API: JPEG/PNG/WebP, até 5 MB, no máximo 3 por avaliação. */
+export const REVIEW_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const REVIEW_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+export const REVIEW_IMAGE_MAX_COUNT = 3;
 
 export const ReviewsService = {
   /** GET /review/list — avaliações visíveis mais recentes de todos os produtos. */
@@ -114,6 +122,50 @@ export const ReviewsService = {
         method: "POST",
       });
       return response.data;
+    } catch (er) {
+      throw toHttpError(er);
+    }
+  },
+
+  /** POST /review/{id}/report — {reason, details?}. 409 se já denunciou; 400 na própria avaliação. */
+  report: async (id: number, dto: ReportReviewDto): Promise<ReviewReport> => {
+    try {
+      const response = await api.request<ReviewReport>({
+        url: `/review/${id}/report`,
+        method: "POST",
+        data: { reason: dto.reason, details: dto.details?.trim() || undefined },
+      });
+      return response.data;
+    } catch (er) {
+      throw toHttpError(er);
+    }
+  },
+
+  /** POST /review/{id}/images (multipart `file`) — só o autor; informa o progresso do envio (0–100). */
+  uploadImage: async (id: number, file: File, onProgress?: (percent: number) => void): Promise<ReviewImage> => {
+    const form = new FormData();
+    form.append("file", file);
+    try {
+      const response = await api.request<ReviewImage>({
+        url: `/review/${id}/images`,
+        method: "POST",
+        data: form,
+        // o axios completa o boundary do multipart
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (event) => {
+          if (onProgress && event.total) onProgress(Math.round((event.loaded / event.total) * 100));
+        },
+      });
+      return response.data;
+    } catch (er) {
+      throw toHttpError(er);
+    }
+  },
+
+  /** DELETE /review/{id}/images/{imageId} — autor (ou ADMIN). */
+  deleteImage: async (id: number, imageId: number): Promise<void> => {
+    try {
+      await api.request({ url: `/review/${id}/images/${imageId}`, method: "DELETE" });
     } catch (er) {
       throw toHttpError(er);
     }

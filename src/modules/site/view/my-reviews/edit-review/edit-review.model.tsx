@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutationUpdateReview } from "@/modules/site/hooks/useMutationReview";
+import { invalidateAfterReviewChange, useMutationUpdateReview } from "@/modules/site/hooks/useMutationReview";
+import {
+  useMutationDeleteReviewImage,
+  useMutationUploadReviewImage,
+} from "@/modules/site/hooks/useReviewImages";
+import { usePhotoPickerModel } from "@/modules/site/components/photo-picker/photo-picker.model";
 import { queryClient } from "@/shared/libs/react-query";
 import { HttpError } from "@/shared/services/http-error";
 import { DESCRIPTION_MAX, SchemaEditReview, TITLE_MAX } from "./edit-review.schema";
@@ -21,6 +26,7 @@ const getErrorMessage = (error: unknown) => {
 
 export const useEditReviewModel = ({ review, onCancel, onSaved, onPendingChange }: EditReviewProps) => {
   const [serverError, setServerError] = useState<string>();
+  const photos = usePhotoPickerModel(review.images ?? []);
 
   const {
     register,
@@ -33,7 +39,11 @@ export const useEditReviewModel = ({ review, onCancel, onSaved, onPendingChange 
     defaultValues: { note: review.note, title: review.title, description: review.description },
   });
 
-  const { mutateAsync: updateReview, isPending } = useMutationUpdateReview();
+  const { mutateAsync: updateReview, isPending: isUpdating } = useMutationUpdateReview();
+  const { mutateAsync: uploadImage } = useMutationUploadReviewImage();
+  const { mutateAsync: deleteImage } = useMutationDeleteReviewImage();
+  const [isSyncingPhotos, setIsSyncingPhotos] = useState(false);
+  const isPending = isUpdating || isSyncingPhotos;
 
   useEffect(() => {
     onPendingChange?.(isPending);
@@ -50,8 +60,23 @@ export const useEditReviewModel = ({ review, onCancel, onSaved, onPendingChange 
     setServerError(undefined);
     try {
       const updated = await updateReview({ id: review.id, dto: { ...data, productId: review.productId } });
+      if (photos.hasChanges) {
+        setIsSyncingPhotos(true);
+        const result = await photos.sync(
+          (file, onProgress) => uploadImage({ reviewId: review.id, file, onProgress }),
+          (imageId) => deleteImage({ reviewId: review.id, imageId }),
+        );
+        setIsSyncingPhotos(false);
+        await invalidateAfterReviewChange();
+        if (result.failed > 0) {
+          // O texto foi salvo; mantém o diálogo aberto para a pessoa ver o que falhou
+          setServerError(`O texto foi salvo, mas houve um problema com as fotos: ${result.firstError}`);
+          return;
+        }
+      }
       onSaved({ ...review, ...data, ...updated });
     } catch (er) {
+      setIsSyncingPhotos(false);
       if (er instanceof HttpError && er.status === 401) await queryClient.resetQueries({ queryKey: ["me"] });
       setServerError(getErrorMessage(er));
     }
@@ -70,7 +95,9 @@ export const useEditReviewModel = ({ review, onCancel, onSaved, onPendingChange 
     descriptionLength,
     titleMax: TITLE_MAX,
     descriptionMax: DESCRIPTION_MAX,
+    photos,
     isPending,
+    isSyncingPhotos,
     serverError,
     onCancel,
   };

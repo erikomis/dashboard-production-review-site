@@ -1,5 +1,6 @@
 import { AlertCircle, Info } from "lucide-react";
 import { StarRatingInput } from "@/modules/site/components/StarRatingInput";
+import { PhotoPicker } from "@/modules/site/components/photo-picker/PhotoPicker";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Textarea } from "@/shared/components/textarea";
@@ -19,7 +20,9 @@ export const EditReviewView = ({
   descriptionLength,
   titleMax,
   descriptionMax,
+  photos,
   isPending,
+  isSyncingPhotos,
   serverError,
   onCancel,
 }: EditReviewViewProps) => (
@@ -56,6 +59,12 @@ export const EditReviewView = ({
       error={errors.description?.message}
     />
 
+    <PhotoPicker photos={photos} disabled={isPending} />
+
+    <p className="sr-only" role="status" aria-live="polite">
+      {isSyncingPhotos ? "Salvando as fotos…" : ""}
+    </p>
+
     <div role="alert" className="empty:hidden">
       {serverError && (
         <p className="mb-4 flex items-start gap-2 rounded-lg bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
@@ -70,7 +79,7 @@ export const EditReviewView = ({
         Cancelar
       </Button>
       <Button type="submit" loading={isPending}>
-        {isPending ? "Salvando…" : "Salvar alterações"}
+        {isSyncingPhotos ? "Salvando fotos…" : isPending ? "Salvando…" : "Salvar alterações"}
       </Button>
     </div>
   </form>

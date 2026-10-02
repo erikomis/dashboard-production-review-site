@@ -16,7 +16,7 @@ export const LayoutAuth = () => {
       {/* Painel da marca (apenas desktop) */}
       <aside aria-hidden="true" className="relative hidden overflow-hidden bg-brand-950 p-12 text-white lg:flex lg:flex-col">
         <div className="pointer-events-none absolute -left-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-brand-600/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-40 right-0 h-[22rem] w-[22rem] rounded-full bg-star/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 right-0 h-[22rem] w-[22rem] rounded-full bg-sky-400/15 blur-3xl" />
         <Logo tone="light" className="relative" />
         <div className="relative mt-auto max-w-md">
           <StarRating value={5} size="lg" decorative />

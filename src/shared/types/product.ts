@@ -8,8 +8,10 @@ export interface ProductSummary {
   slug: string;
   subCategorieId: number;
   subCategorieName: string | null;
+  subCategorieSlug: string | null;
   categoryId: number | null;
   categoryName: string | null;
+  categorySlug: string | null;
   /** Foto principal (ex.: images.openfoodfacts.org) ou null */
   imageUrl: string | null;
   /** Média com 1 casa decimal; null quando ainda não há avaliações */

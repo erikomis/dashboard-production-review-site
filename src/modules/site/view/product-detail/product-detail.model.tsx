@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { toast } from "react-toastify";
 import { useQueryProductBySlug, useQueryProducts } from "@/modules/site/hooks/useQueryProducts";
-import { useQueryCategories } from "@/modules/site/hooks/useQueryCategories";
 import { useQueryReviewSummary, useQueryReviewsByProduct } from "@/modules/site/hooks/useQueryReviews";
 import { useMutationHelpful, usePendingHelpfulIds } from "@/modules/site/hooks/useMutationHelpful";
 import { useMeQuery } from "@/shared/hooks/useMeQuery";
@@ -45,7 +44,6 @@ export const useProductDetailModel = () => {
   const product = productQuery.data;
   const productId = product?.id;
 
-  const { data: categories } = useQueryCategories();
   const summaryQuery = useQueryReviewSummary(productId);
   const reviewsQuery = useQueryReviewsByProduct(productId, {
     page: reviewsPage,
@@ -70,7 +68,7 @@ export const useProductDetailModel = () => {
   useDocumentTitle(product ? product.name : productQuery.isPending ? undefined : "Produto não encontrado");
 
   // O detalhe traz só o id da categoria; o slug (para o link) vem da lista de categorias
-  const categorySlug = (categories ?? []).find((c) => c.id === product?.categoryId)?.slug;
+  const categorySlug = product?.categorySlug ?? undefined;
 
   const images = useMemo(() => {
     if (!product) return [];

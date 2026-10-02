@@ -1,5 +1,5 @@
-import { AxiosError } from "axios";
 import { api } from "@/shared/services/api";
+import { toHttpError } from "@/shared/services/http-error";
 
 type SignUpProps = {
   name: string;
@@ -17,8 +17,6 @@ export const SignUpService = async (data: SignUpProps) => {
     });
     return response;
   } catch (er) {
-    const error = er as AxiosError<{ message: string }>;
-    const message = (error.response?.data?.message as string) || error.message;
-    throw new Error(`${message}`);
+    throw toHttpError(er);
   }
 };

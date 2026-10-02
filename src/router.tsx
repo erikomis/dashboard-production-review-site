@@ -1,79 +1,52 @@
-import {
-  createRootRoute,
-  createRoute,
-  createRouter,
-  redirect,
-  Outlet,
-} from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
-import { lazy, Suspense } from "react";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { createRootRoute, createRoute, createRouter, redirect } from "@tanstack/react-router";
+import { lazy } from "react";
 
 import { queryClient } from "./shared/libs/react-query";
 import { me } from "./shared/services/me";
-import { Loading } from "./shared/components/loading/Loading";
+import { withSuspense } from "./shared/components/lazy-page";
+import { RootLayout } from "./shared/view/RootLayout";
+import { RouteError } from "./shared/view/RouteError";
 import { LayoutAuth } from "./modules/auth/Layout/LayoutAuth";
 import { LayoutSite } from "./modules/site/layout/LayoutSite";
 import { NotFoundView } from "./shared/view/NotFoundView";
-import { ProductsService } from "./modules/site/services/products.service";
+import { productBySlugQueryOptions } from "./modules/site/hooks/useQueryProducts";
+import { categoryBySlugQueryOptions } from "./modules/site/hooks/useQueryCategories";
+import { SchemaProductListSearch } from "./modules/site/view/product-list/product-list.schema";
+import { SchemaProductDetailSearch } from "./modules/site/view/product-detail/product-detail.schema";
+import { SchemaRankingSearch } from "./modules/site/view/ranking/ranking.schema";
+import { SchemaCategorySearch } from "./modules/site/view/category/category.schema";
+import { SchemaMyReviewsSearch } from "./modules/site/view/my-reviews/my-reviews.schema";
+import { SchemaSignInSearch } from "./modules/auth/sign-in/sign-in.schema";
+import { SchemaResetPasswordSearch } from "./modules/auth/reset-password/reset-password.schema";
 
-const SignInPage = lazy(() => import("./modules/auth/sign-in/SignInPage"));
-const SignUpPage = lazy(() => import("./modules/auth/sign-up/SignUpPage"));
-const ForgotPasswordPage = lazy(
-  () => import("./modules/auth/forgot-password/ForgotPasswordPage")
-);
-const ResetPasswordPage = lazy(
-  () => import("./modules/auth/reset-password/ResetPasswordPage")
-);
-const HomePage = lazy(() => import("./modules/site/view/home/HomePage"));
-const ProductListPage = lazy(
-  () => import("./modules/site/view/product-list/ProductListPage")
-);
-const ProductDetailPage = lazy(
-  () => import("./modules/site/view/product-detail/ProductDetailPage")
-);
+const SignInPage = withSuspense(lazy(() => import("./modules/auth/sign-in/SignInPage")));
+const SignUpPage = withSuspense(lazy(() => import("./modules/auth/sign-up/SignUpPage")));
+const ForgotPasswordPage = withSuspense(lazy(() => import("./modules/auth/forgot-password/ForgotPasswordPage")));
+const ResetPasswordPage = withSuspense(lazy(() => import("./modules/auth/reset-password/ResetPasswordPage")));
+const ActivateAccountPage = withSuspense(lazy(() => import("./modules/auth/activate-account/ActivateAccountPage")));
+const HomePage = withSuspense(lazy(() => import("./modules/site/view/home/HomePage")));
+const ProductListPage = withSuspense(lazy(() => import("./modules/site/view/product-list/ProductListPage")));
+const ProductDetailPage = withSuspense(lazy(() => import("./modules/site/view/product-detail/ProductDetailPage")));
+const RankingPage = withSuspense(lazy(() => import("./modules/site/view/ranking/RankingPage")));
+const CategoryPage = withSuspense(lazy(() => import("./modules/site/view/category/CategoryPage")));
+const MyReviewsPage = withSuspense(lazy(() => import("./modules/site/view/my-reviews/MyReviewsPage")));
 
-const RouteError = ({ error }: { error: unknown }) => (
-  <div className="flex flex-col items-center justify-center py-16 gap-2 text-center">
-    <p className="text-lg font-semibold text-danger">Erro ao carregar página</p>
-    <p className="text-sm text-body">
-      {error instanceof Error ? error.message : "Tente novamente mais tarde."}
-    </p>
-  </div>
-);
+/** Usuário logado (ou null), reaproveitando o cache de ["me"]. */
+const getCurrentUser = () =>
+  queryClient.ensureQueryData({ queryKey: ["me"], queryFn: me, retry: false }).catch(() => null);
 
-// Root — wraps providers
-const rootRoute = createRootRoute({
-  component: () => (
-    <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <ToastContainer
-        position="bottom-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      {import.meta.env.DEV && <TanStackRouterDevtools />}
-    </QueryClientProvider>
-  ),
-});
+// Root — providers
+const rootRoute = createRootRoute({ component: RootLayout });
 
 // Auth layout — redireciona para / se já autenticado
 const authLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "auth",
   beforeLoad: async () => {
-    const user = await queryClient
-      .ensureQueryData({ queryKey: ["me"], queryFn: me })
-      .catch(() => null);
+    // Visitante já confirmado como não logado há pouco: evita outro 401 em /user/me
+    const state = queryClient.getQueryState(["me"]);
+    if (state?.status === "error" && Date.now() - state.errorUpdatedAt < 60_000) return;
+    const user = await getCurrentUser();
     if (user) throw redirect({ to: "/" });
   },
   component: LayoutAuth,
@@ -82,47 +55,38 @@ const authLayoutRoute = createRoute({
 const signInRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: "/login",
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
-    redirect: search.redirect ? String(search.redirect) : undefined,
-  }),
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <SignInPage />
-    </Suspense>
-  ),
+  validateSearch: (search) => SchemaSignInSearch.parse(search),
+  component: SignInPage,
 });
 
 const signUpRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: "/sign-up",
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <SignUpPage />
-    </Suspense>
-  ),
+  component: SignUpPage,
 });
 
 const forgotPasswordRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: "/forgot-password",
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <ForgotPasswordPage />
-    </Suspense>
-  ),
+  component: ForgotPasswordPage,
 });
 
 const resetPasswordRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: "/reset-password",
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <ResetPasswordPage />
-    </Suspense>
-  ),
+  validateSearch: (search) => SchemaResetPasswordSearch.parse(search),
+  component: ResetPasswordPage,
 });
 
-// Site layout — público, rota principal é /
+// Link enviado por e-mail no cadastro: {origin}/activate-account/{token}
+const activateAccountRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: "/activate-account/$token",
+  component: ActivateAccountPage,
+});
+
+// Site layout — público. O id "site" entra no id das rotas filhas
+// (ex.: "/site/products/$slug"), usado em useParams/useSearch({ from }).
 const siteLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "site",
@@ -132,63 +96,66 @@ const siteLayoutRoute = createRoute({
 const homeRoute = createRoute({
   getParentRoute: () => siteLayoutRoute,
   path: "/",
-  loader: () =>
-    queryClient.ensureQueryData({
-      queryKey: ["products", 0, 6],
-      queryFn: () => ProductsService.fetchProducts(0, 6),
-    }),
-  pendingComponent: Loading,
   errorComponent: RouteError,
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <HomePage />
-    </Suspense>
-  ),
+  component: HomePage,
 });
 
 const productListRoute = createRoute({
   getParentRoute: () => siteLayoutRoute,
   path: "/products",
-  validateSearch: (search: Record<string, unknown>) => ({
-    page: Number(search.page ?? 0),
-    q: String(search.q ?? ""),
-  }),
-  loaderDeps: ({ search: { page } }) => ({ page }),
-  loader: ({ deps: { page } }) =>
-    queryClient.ensureQueryData({
-      queryKey: ["products", page, 12],
-      queryFn: () => ProductsService.fetchProducts(page, 12),
-    }),
-  pendingComponent: Loading,
+  validateSearch: (search) => SchemaProductListSearch.parse(search),
   errorComponent: RouteError,
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <ProductListPage />
-    </Suspense>
-  ),
+  component: ProductListPage,
 });
 
 const productDetailRoute = createRoute({
   getParentRoute: () => siteLayoutRoute,
   path: "/products/$slug",
-  loader: ({ params }) =>
-    queryClient.ensureQueryData({
-      queryKey: ["product", params.slug],
-      queryFn: () => ProductsService.getBySlug(params.slug),
-    }),
-  pendingComponent: Loading,
+  validateSearch: (search) => SchemaProductDetailSearch.parse(search),
+  // Pré-carrega o produto (ex.: ao passar o mouse no link) sem bloquear a navegação
+  loader: ({ params }) => {
+    queryClient.prefetchQuery(productBySlugQueryOptions(params.slug));
+  },
   errorComponent: RouteError,
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <ProductDetailPage />
-    </Suspense>
-  ),
+  component: ProductDetailPage,
+});
+
+const rankingRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: "/ranking",
+  validateSearch: (search) => SchemaRankingSearch.parse(search),
+  errorComponent: RouteError,
+  component: RankingPage,
+});
+
+const categoryRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: "/categorias/$slug",
+  validateSearch: (search) => SchemaCategorySearch.parse(search),
+  loader: ({ params }) => {
+    queryClient.prefetchQuery(categoryBySlugQueryOptions(params.slug));
+  },
+  errorComponent: RouteError,
+  component: CategoryPage,
+});
+
+// Exige login: sem sessão, vai para /login e volta para cá depois de entrar
+const myReviewsRoute = createRoute({
+  getParentRoute: () => siteLayoutRoute,
+  path: "/minhas-avaliacoes",
+  validateSearch: (search) => SchemaMyReviewsSearch.parse(search),
+  beforeLoad: async ({ location }) => {
+    const user = await getCurrentUser();
+    if (!user) throw redirect({ to: "/login", search: { redirect: location.href } });
+  },
+  errorComponent: RouteError,
+  component: MyReviewsPage,
 });
 
 const notFoundRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => siteLayoutRoute,
   path: "*",
-  component: () => <NotFoundView path="/" message="Voltar para início" />,
+  component: () => <NotFoundView path="/" message="Voltar para o início" />,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -197,13 +164,17 @@ const routeTree = rootRoute.addChildren([
     signUpRoute,
     forgotPasswordRoute,
     resetPasswordRoute,
+    activateAccountRoute,
   ]),
   siteLayoutRoute.addChildren([
     homeRoute,
     productListRoute,
     productDetailRoute,
+    rankingRoute,
+    categoryRoute,
+    myReviewsRoute,
+    notFoundRoute,
   ]),
-  notFoundRoute,
 ]);
 
 export const router = createRouter({

@@ -1,11 +1,27 @@
 import { z } from "zod";
 
-export const SchemaSignUp = z.object({
-  name: z.string().min(2, { message: "Nome precisa ter no mínimo 2 caracteres" }),
-  username: z
-    .string()
-    .min(3, { message: "Username precisa ter no mínimo 3 caracteres" })
-    .regex(/^[a-z0-9_]+$/, { message: "Apenas letras minúsculas, números e _" }),
-  email: z.string().email({ message: "E-mail inválido" }),
-  password: z.string().min(6, { message: "Senha precisa ter no mínimo 6 caracteres" }),
-});
+export const SchemaSignUp = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, { message: "Informe seu nome (mínimo 2 caracteres)." })
+      .max(100, { message: "O nome pode ter no máximo 100 caracteres." }),
+    username: z
+      .string()
+      .trim()
+      .min(3, { message: "O nome de usuário precisa ter pelo menos 3 caracteres." })
+      .max(30, { message: "O nome de usuário pode ter no máximo 30 caracteres." })
+      .regex(/^[a-z0-9_.]+$/, { message: "Use apenas letras minúsculas, números, ponto e _." }),
+    email: z.string().trim().email({ message: "Informe um e-mail válido, ex.: nome@email.com." }),
+    // A API aceita de 3 a 20 caracteres; exigimos no mínimo 6 por segurança
+    password: z
+      .string()
+      .min(6, { message: "A senha precisa ter pelo menos 6 caracteres." })
+      .max(20, { message: "A senha pode ter no máximo 20 caracteres." }),
+    confirmPassword: z.string().min(1, { message: "Confirme sua senha." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem.",
+    path: ["confirmPassword"],
+  });

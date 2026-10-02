@@ -2,61 +2,75 @@
 import defaultTheme from "tailwindcss/defaultTheme";
 
 export default {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
-  darkMode: "class",
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
-    fontFamily: {
-      satoshi: ["sans-serif"],
-    },
     screens: {
-      "2xsm": "375px",
-      xsm: "425px",
-      "3xl": "2000px",
+      xs: "400px",
       ...defaultTheme.screens,
     },
     extend: {
+      fontFamily: {
+        // Mesmo par tipográfico do dashboard: Inter no texto, Plus Jakarta Sans nos títulos.
+        sans: ["Inter", ...defaultTheme.fontFamily.sans],
+        display: ['"Plus Jakarta Sans"', "Inter", ...defaultTheme.fontFamily.sans],
+      },
       colors: {
-        current: "currentColor",
-        transparent: "transparent",
-        white: "#FFFFFF",
-        black: "#1C2434",
-        "black-2": "#010101",
-        body: "#64748B",
-        bodydark: "#AEB7C0",
-        bodydark1: "#DEE4EE",
-        bodydark2: "#8A99AF",
+        // Paleta compartilhada com o dashboard (primary #3C50E0).
+        // Todos os pares texto/fundo usados abaixo atingem contraste AA (>= 4.5:1).
+        ink: {
+          DEFAULT: "#1C2434", // texto principal (15:1 sobre canvas)
+          soft: "#334155", // texto secundário forte
+        },
+        muted: "#556274", // texto auxiliar (6:1 sobre branco)
+        canvas: "#F5F7FB", // fundo da página
+        surface: "#FFFFFF",
+        line: {
+          DEFAULT: "#E2E8F0",
+          strong: "#7A889C", // bordas de campos (3.6:1 sobre branco)
+        },
+        brand: {
+          50: "#EEF1FE",
+          100: "#DFE4FD",
+          200: "#C3CBFB",
+          300: "#98A5F6",
+          500: "#4F63EA",
+          600: "#3C50E0", // botões/links (6.2:1 com branco)
+          700: "#3040B8",
+          800: "#283590",
+          900: "#1F2A6E",
+          950: "#141B45",
+        },
         primary: "#3C50E0",
-        secondary: "#80CAEE",
-        stroke: "#E2E8F0",
-        "gray-light": "#EFF4FB",
-        graydark: "#333A48",
-        "gray-2": "#F7F9FC",
-        whiten: "#F1F5F9",
-        whiter: "#F5F7FD",
-        boxdark: "#24303F",
-        "boxdark-2": "#1A222C",
-        strokedark: "#2E3A47",
-        "form-strokedark": "#3d4d60",
-        "form-input": "#1d2a39",
-        success: "#219653",
-        danger: "#D34053",
-        warning: "#FFA70B",
-        "meta-3": "#10B981",
-        "meta-6": "#FFBA00",
+        star: {
+          DEFAULT: "#D97706", // estrela preenchida (3.2:1 sobre branco), igual ao dashboard
+          empty: "#CBD5E1",
+        },
+        cream: "#FEF3C7", // destaque âmbar suave (combina com as estrelas)
+        danger: {
+          DEFAULT: "#B42318", // 6.2:1 sobre branco
+          soft: "#FEF3F2",
+        },
+        success: {
+          DEFAULT: "#067647",
+          soft: "#ECFDF3",
+        },
       },
       boxShadow: {
-        default: "0px 8px 13px -3px rgba(0, 0, 0, 0.07)",
-        card: "0px 1px 3px rgba(0, 0, 0, 0.12)",
+        card: "0 1px 2px rgba(28, 36, 52, 0.06), 0 1px 1px rgba(28, 36, 52, 0.04)",
+        raised: "0 12px 32px -12px rgba(28, 36, 52, 0.22)",
       },
-      spacing: {
-        4.5: "1.125rem",
-        5.5: "1.375rem",
-        6.5: "1.625rem",
-        7.5: "1.875rem",
-        10.5: "2.625rem",
-        12.5: "3.125rem",
-        17.5: "4.375rem",
-        22.5: "5.625rem",
+      maxWidth: {
+        content: "76rem",
+      },
+      keyframes: {
+        shimmer: {
+          "0%": { opacity: "1" },
+          "50%": { opacity: "0.55" },
+          "100%": { opacity: "1" },
+        },
+      },
+      animation: {
+        shimmer: "shimmer 1.6s ease-in-out infinite",
       },
     },
   },

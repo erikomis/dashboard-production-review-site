@@ -1,10 +1,11 @@
-import { AxiosError } from "axios";
 import { api } from "@/shared/services/api";
+import { toHttpError } from "@/shared/services/http-error";
 
+/** PATCH /auth/recovery-code/password — {email, password, recoveryCode}. */
 export const ResetPasswordService = async (
   email: string,
   password: string,
-  recoveryCode: string
+  recoveryCode: string,
 ) => {
   try {
     const response = await api.request({
@@ -14,8 +15,6 @@ export const ResetPasswordService = async (
     });
     return response;
   } catch (er) {
-    const error = er as AxiosError<{ message: string }>;
-    const message = (error.response?.data?.message as string) || error.message;
-    throw new Error(`${message}`);
+    throw toHttpError(er);
   }
 };

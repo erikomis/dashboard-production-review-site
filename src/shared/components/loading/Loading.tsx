@@ -1,7 +1,10 @@
-export const Loading = () => {
+import { Spinner } from "../spinner";
+
+export const Loading = ({ label = "Carregando…" }: { label?: string }) => {
   return (
-    <div className="flex items-center justify-center w-full h-screen">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+    <div role="status" className="flex min-h-[50vh] w-full items-center justify-center gap-3 text-brand-600">
+      <Spinner className="h-8 w-8" />
+      <span className="sr-only">{label}</span>
     </div>
   );
 };

@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { Eye, Mail, KeyRound } from "lucide-react";
+import { KeyRound, LockKeyhole, Mail } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
-import { Label } from "@/shared/components/label";
+import { AuthHeading } from "../components/AuthHeading";
+import { FormAlert } from "../components/FormAlert";
 import { useResetPasswordModel } from "./reset-password.model";
 
 type ResetPasswordViewProps = ReturnType<typeof useResetPasswordModel>;
@@ -13,74 +14,81 @@ export const ResetPasswordView = ({
   errors,
   isSubmitting,
   onSubmit,
+  serverError,
+  hasEmailFromUrl,
 }: ResetPasswordViewProps) => {
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <h2 className="text-xl font-bold text-black mb-1">Redefinir senha</h2>
-      <p className="text-body text-sm mb-6">
-        Insira o código recebido por e-mail e defina sua nova senha.
-      </p>
+    <>
+      <p className="mb-2 text-sm font-semibold text-brand-700">Etapa 2 de 2</p>
+      <AuthHeading
+        title="Criar nova senha"
+        description="Digite o código de 6 dígitos que enviamos para o seu e-mail e escolha uma nova senha."
+      />
+      <form noValidate onSubmit={handleSubmit(onSubmit)}>
+        <FormAlert>{serverError}</FormAlert>
 
-      <Input
-        {...register("email")}
-        type="email"
-        autoComplete="email"
-        placeholder="seu@email.com"
-        icon={<Mail size={24} />}
-        error={errors.email?.message}
-      >
-        <Label value="E-mail:" htmlFor="email" />
-      </Input>
+        <Input
+          {...register("email")}
+          label="E-mail"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          icon={<Mail />}
+          error={errors.email?.message}
+        />
 
-      <Input
-        {...register("recoveryCode")}
-        type="text"
-        placeholder="Código de recuperação"
-        icon={<KeyRound size={24} />}
-        error={errors.recoveryCode?.message}
-      >
-        <Label value="Código de recuperação:" htmlFor="recoveryCode" />
-      </Input>
+        <Input
+          {...register("recoveryCode")}
+          label="Código de verificação"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={6}
+          pattern="\d{6}"
+          autoFocus={hasEmailFromUrl}
+          icon={<KeyRound />}
+          hint="6 dígitos, enviado para o seu e-mail."
+          error={errors.recoveryCode?.message}
+          className="font-mono tracking-[0.3em]"
+        />
 
-      <Input
-        {...register("password")}
-        type="password"
-        autoComplete="new-password"
-        placeholder="••••••••"
-        icon={<Eye size={24} />}
-        error={errors.password?.message}
-      >
-        <Label value="Nova senha:" htmlFor="password" />
-      </Input>
+        <Input
+          {...register("password")}
+          label="Nova senha"
+          type="password"
+          autoComplete="new-password"
+          icon={<LockKeyhole />}
+          hint="De 6 a 20 caracteres."
+          error={errors.password?.message}
+        />
 
-      <Input
-        {...register("confirmPassword")}
-        type="password"
-        autoComplete="new-password"
-        placeholder="••••••••"
-        icon={<Eye size={24} />}
-        error={errors.confirmPassword?.message}
-      >
-        <Label value="Confirmar senha:" htmlFor="confirmPassword" />
-      </Input>
+        <Input
+          {...register("confirmPassword")}
+          label="Confirmar nova senha"
+          type="password"
+          autoComplete="new-password"
+          icon={<LockKeyhole />}
+          error={errors.confirmPassword?.message}
+          containerClassName="mb-6"
+        />
 
-      <div className="mb-5">
-        <Button
-          type="submit"
-          color="default"
-          size="lg"
-          className="flex w-full p-4 text-white transition border rounded-lg cursor-pointer border-primary bg-primary hover:bg-opacity-90"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Salvando..." : "Redefinir senha"}
+        <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
+          {isSubmitting ? "Salvando…" : "Redefinir senha"}
         </Button>
-      </div>
+      </form>
 
-      <div className="mt-4 text-center">
-        <Link to="/" className="text-primary hover:underline text-sm">
-          Voltar para o login
-        </Link>
+      <div className="mt-7 flex flex-col gap-2 border-t border-line pt-6 text-center text-sm text-muted">
+        <p>
+          Não recebeu o código?{" "}
+          <Link to="/forgot-password" className="link">
+            Enviar novamente
+          </Link>
+        </p>
+        <p>
+          <Link to="/login" className="link">
+            Voltar para o login
+          </Link>
+        </p>
       </div>
-    </form>
+    </>
   );
 };

@@ -3,6 +3,6 @@ import { SignInService } from "../services/sign-in";
 
 export const useMutationSignIn = () =>
   useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      SignInService({ email, password }),
+    mutationFn: ({ username, password }: { username: string; password: string }) =>
+      SignInService({ username, password }),
   });

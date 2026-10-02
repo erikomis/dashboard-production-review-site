@@ -1,4 +1,4 @@
 import { z } from "zod";
-import { SchemaReview } from "./product-detail.schema";
+import { SchemaProductDetailSearch } from "./product-detail.schema";
 
-export type ReviewFormValues = z.infer<typeof SchemaReview>;
+export type ProductDetailSearch = z.infer<typeof SchemaProductDetailSearch>;

@@ -1,9 +1,7 @@
 import { z } from "zod";
 
-export const SchemaReview = z.object({
-  title: z.string().min(3, { message: "Título precisa ter no mínimo 3 caracteres" }).max(100),
-  content: z
-    .string()
-    .min(10, { message: "Escreva um pouco mais sobre o produto (min. 10 caracteres)" })
-    .max(2000),
+/** Parâmetros de busca da URL de /products/$slug. */
+export const SchemaProductDetailSearch = z.object({
+  /** Página da lista de avaliações, base 1 (a API usa base 0) */
+  page: z.coerce.number().int().min(1).optional().catch(undefined),
 });

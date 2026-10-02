@@ -1,70 +1,97 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "@tanstack/react-router";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "react-toastify";
+import { useMemo, useRef } from "react";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useQueryProductBySlug } from "@/modules/site/hooks/useQueryProducts";
-import { useQueryReviews } from "@/modules/site/hooks/useQueryReviews";
-import { useMutationReview } from "@/modules/site/hooks/useMutationReview";
+import { useQueryCategories } from "@/modules/site/hooks/useQueryCategories";
+import { useQueryReviewSummary, useQueryReviewsByProduct } from "@/modules/site/hooks/useQueryReviews";
 import { useMeQuery } from "@/shared/hooks/useMeQuery";
-import { SchemaReview } from "./product-detail.schema";
-import { ReviewFormValues } from "./product-detail.type";
+import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
+
+export const REVIEWS_PAGE_SIZE = 10;
+/** Maior página aceita pela API; usada para calcular a distribuição das notas. */
+export const DISTRIBUTION_SAMPLE_SIZE = 100;
 
 export const useProductDetailModel = () => {
-  const { slug } = useParams({ from: "/products/$slug" });
+  // A rota fica sob o layout de id "site": o id completo é "/site/products/$slug"
+  const { slug } = useParams({ from: "/site/products/$slug" });
+  const search = useSearch({ from: "/site/products/$slug" });
   const navigate = useNavigate();
-  const [rating, setRating] = useState(0);
-  const { isSuccess: isAuthenticated } = useMeQuery();
+  const reviewsPage = (search.page ?? 1) - 1;
+  const reviewsHeadingRef = useRef<HTMLHeadingElement>(null);
 
-  const { data: product, isLoading: loadingProduct } = useQueryProductBySlug(slug ?? "");
-  const { data: reviewPage, isLoading: loadingReviews } = useQueryReviews(product?.id ?? "");
+  const { data: user } = useMeQuery();
+  const productQuery = useQueryProductBySlug(slug);
+  const product = productQuery.data;
+  const productId = product?.id;
 
-  const { mutateAsync: createReview, isPending } = useMutationReview(product?.id ?? "");
+  const { data: categories } = useQueryCategories();
+  const summaryQuery = useQueryReviewSummary(productId);
+  const reviewsQuery = useQueryReviewsByProduct(productId, reviewsPage, REVIEWS_PAGE_SIZE);
+  const sampleQuery = useQueryReviewsByProduct(productId, 0, DISTRIBUTION_SAMPLE_SIZE);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<ReviewFormValues>({ resolver: zodResolver(SchemaReview) });
+  useDocumentTitle(product ? product.name : productQuery.isPending ? undefined : "Produto não encontrado");
 
-  const reviews = reviewPage?.content ?? [];
-  const avgRating =
-    reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+  const subCategorieId = product?.subCategorieId;
+  const category = (categories ?? []).find((c) => c.subCategories.some((s) => s.id === subCategorieId));
+  const subCategory = category?.subCategories.find((s) => s.id === subCategorieId);
 
-  const onSubmit: SubmitHandler<ReviewFormValues> = async (data) => {
-    if (!isAuthenticated) {
-      navigate({ to: "/login", search: { redirect: `/products/${slug}` } });
-      return;
-    }
-    if (rating === 0) {
-      toast.warning("Selecione uma nota de 1 a 5 estrelas.");
-      return;
-    }
-    try {
-      await createReview({ ...data, rating, productId: product!.id });
-      toast.success("Avaliação enviada! Obrigado pelo feedback.");
-      reset();
-      setRating(0);
-    } catch {
-      toast.error("Erro ao enviar avaliação. Tente novamente.");
-    }
+  // Distribuição das notas calculada a partir das avaliações carregadas
+  const distribution = useMemo(() => {
+    const sample = sampleQuery.data?.content ?? [];
+    const counts = [0, 0, 0, 0, 0];
+    sample.forEach((r) => {
+      if (r.note >= 1 && r.note <= 5) counts[r.note - 1] += 1;
+    });
+    return { counts, sampleSize: sample.length };
+  }, [sampleQuery.data]);
+
+  const totalReviews = summaryQuery.data?.totalReviews ?? 0;
+  const averageNote = summaryQuery.data?.averageNote ?? 0;
+
+  const onReviewsPageChange = (nextPage: number) => {
+    navigate({
+      to: "/products/$slug",
+      params: { slug },
+      search: { page: nextPage > 0 ? nextPage + 1 : undefined },
+      resetScroll: false,
+    });
+    reviewsHeadingRef.current?.focus({ preventScroll: true });
+    reviewsHeadingRef.current?.scrollIntoView({ block: "start" });
+  };
+
+  // Depois de publicar, volta para a 1ª página para a avaliação nova aparecer
+  const onReviewCreated = () => {
+    if (reviewsPage !== 0) onReviewsPageChange(0);
   };
 
   return {
-    product,
-    loadingProduct,
-    reviews,
-    loadingReviews,
-    avgRating,
-    rating,
-    setRating,
-    register,
-    handleSubmit,
-    onSubmit,
-    errors,
-    isPending,
-    isAuthenticated,
     slug,
+    product,
+    isLoadingProduct: productQuery.isPending,
+    isErrorProduct: productQuery.isError,
+    productError: productQuery.error,
+    refetchProduct: productQuery.refetch,
+    category,
+    subCategory,
+
+    totalReviews,
+    averageNote,
+    isLoadingSummary: summaryQuery.isPending,
+
+    reviews: reviewsQuery.data?.content ?? [],
+    reviewsPage,
+    reviewsTotalPages: reviewsQuery.data?.page.totalPages ?? 0,
+    isLoadingReviews: reviewsQuery.isPending,
+    isFetchingReviews: reviewsQuery.isFetching,
+    isErrorReviews: reviewsQuery.isError,
+    refetchReviews: reviewsQuery.refetch,
+    onReviewsPageChange,
+    reviewsHeadingRef,
+
+    distribution,
+    isLoadingDistribution: sampleQuery.isPending,
+
+    isAuthenticated: !!user,
+    loginRedirect: `/products/${slug}#avaliar`,
+    onReviewCreated,
   };
 };

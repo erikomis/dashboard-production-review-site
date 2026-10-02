@@ -112,6 +112,9 @@ export const useLayoutSiteModel = () => {
     try {
       await logoutService();
       await queryClient.resetQueries({ queryKey: ["me"] });
+      // Dados ligados à conta: "minhas avaliações" e as marcações de "útil"
+      queryClient.removeQueries({ queryKey: ["reviews", "me"] });
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
       setUserMenuOpen(false);
       setMobileOpen(false);
       toast.info("Você saiu da sua conta.");

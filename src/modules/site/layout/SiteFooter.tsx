@@ -7,7 +7,6 @@ type SiteFooterProps = Pick<ReturnType<typeof useLayoutSiteModel>, "categories" 
 const linkClass = "rounded text-sm text-brand-100 transition-colors hover:text-white hover:underline underline-offset-4";
 
 export const SiteFooter = ({ categories, isAuthenticated, handleLogout }: SiteFooterProps) => {
-  const subCategories = categories.flatMap((c) => c.subCategories).slice(0, 6);
   return (
     <footer className="on-dark mt-20 bg-brand-950 text-brand-100">
       <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
@@ -27,7 +26,8 @@ export const SiteFooter = ({ categories, isAuthenticated, handleLogout }: SiteFo
           <ul className="mt-4 space-y-2.5">
             <li><Link to="/" className={linkClass}>Início</Link></li>
             <li><Link to="/products" className={linkClass}>Todos os produtos</Link></li>
-            <li><Link to="/products" search={{ sort: "name-asc" }} className={linkClass}>Produtos de A a Z</Link></li>
+            <li><Link to="/ranking" className={linkClass}>Mais bem avaliados</Link></li>
+            <li><Link to="/products" search={{ sort: "popular" }} className={linkClass}>Mais avaliados</Link></li>
             <li><Link to="/" hash="avaliacoes-recentes" className={linkClass}>Avaliações recentes</Link></li>
           </ul>
         </nav>
@@ -37,11 +37,11 @@ export const SiteFooter = ({ categories, isAuthenticated, handleLogout }: SiteFo
             Categorias
           </h2>
           <ul className="mt-4 space-y-2.5">
-            {subCategories.length === 0 && <li className="text-sm">Em breve</li>}
-            {subCategories.map((sub) => (
-              <li key={sub.id}>
-                <Link to="/products" search={{ sub: sub.id }} className={linkClass}>
-                  {sub.name}
+            {categories.length === 0 && <li className="text-sm">Em breve</li>}
+            {categories.map((category) => (
+              <li key={category.id}>
+                <Link to="/categorias/$slug" params={{ slug: category.slug }} className={linkClass}>
+                  {category.name}
                 </Link>
               </li>
             ))}
@@ -54,11 +54,14 @@ export const SiteFooter = ({ categories, isAuthenticated, handleLogout }: SiteFo
           </h2>
           <ul className="mt-4 space-y-2.5">
             {isAuthenticated ? (
-              <li>
-                <button type="button" onClick={handleLogout} className={linkClass}>
-                  Sair da conta
-                </button>
-              </li>
+              <>
+                <li><Link to="/minhas-avaliacoes" className={linkClass}>Minhas avaliações</Link></li>
+                <li>
+                  <button type="button" onClick={handleLogout} className={linkClass}>
+                    Sair da conta
+                  </button>
+                </li>
+              </>
             ) : (
               <>
                 <li><Link to="/login" className={linkClass}>Entrar</Link></li>

@@ -1,14 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Layers, MessageSquareText, Quote } from "lucide-react";
+import { ArrowRight, Layers, MessageSquareText, Quote, Trophy } from "lucide-react";
 import { ProductCard, ProductCardSkeleton } from "@/modules/site/components/ProductCard";
 import { ReviewCard, ReviewCardSkeleton } from "@/modules/site/components/ReviewCard";
+import { RankedProduct, RankedProductSkeleton } from "@/modules/site/components/RankedProduct";
+import type { ProductSummary } from "@/shared/types/product";
 import { StarRating } from "@/modules/site/components/StarRating";
 import { SearchForm } from "@/modules/site/layout/SearchForm";
 import { buttonVariants } from "@/shared/components/button-variants";
 import { EmptyState, ErrorState } from "@/shared/components/state";
 import { formatDate, formatInteger, getInitials } from "@/shared/utils/format";
 import { cn } from "@/shared/utils/utils";
-import { FEATURED_SIZE, RECENT_REVIEWS_SIZE, useHomeModel } from "./home.model";
+import { FEATURED_SIZE, RECENT_REVIEWS_SIZE, TOP_SIZE, useHomeModel } from "./home.model";
 
 type HomeViewProps = ReturnType<typeof useHomeModel>;
 
@@ -37,6 +39,56 @@ const SectionHeader = ({
   </div>
 );
 
+const TopList = ({
+  id,
+  title,
+  description,
+  products,
+  metric,
+  isLoading,
+  isError,
+  onRetry,
+}: {
+  id: string;
+  title: string;
+  description: string;
+  products: ProductSummary[];
+  metric: "rating" | "reviews";
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+}) => (
+  <div className="rounded-3xl border border-line bg-surface p-5 shadow-card sm:p-6">
+    <h3 id={id} className="text-xl font-bold text-ink">
+      {title}
+    </h3>
+    <p className="mt-1 text-sm text-muted">{description}</p>
+    <div className="mt-5">
+      {isError ? (
+        <ErrorState message="Não conseguimos carregar esta lista." onRetry={onRetry} />
+      ) : isLoading ? (
+        <div className="space-y-3" aria-hidden="true">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <RankedProductSkeleton key={i} compact />
+          ))}
+        </div>
+      ) : products.length === 0 ? (
+        <p className="rounded-2xl bg-canvas px-4 py-6 text-center text-sm text-muted">
+          Ainda não há produtos avaliados. Que tal ser o primeiro?
+        </p>
+      ) : (
+        <ol className="space-y-3" aria-labelledby={id}>
+          {products.map((product, idx) => (
+            <li key={product.id}>
+              <RankedProduct product={product} position={idx + 1} variant="compact" metric={metric} headingLevel="h4" />
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </div>
+);
+
 export const HomeView = (props: HomeViewProps) => {
   const {
     searchTerm,
@@ -44,7 +96,6 @@ export const HomeView = (props: HomeViewProps) => {
     onSearchSubmit,
     isAuthenticated,
     products,
-    summaries,
     totalProducts,
     isLoadingProducts,
     isErrorProducts,
@@ -53,9 +104,17 @@ export const HomeView = (props: HomeViewProps) => {
     isLoadingCategories,
     isErrorCategories,
     refetchCategories,
+    topRated,
+    totalRated,
+    isLoadingTopRated,
+    isErrorTopRated,
+    refetchTopRated,
+    mostReviewed,
+    isLoadingMostReviewed,
+    isErrorMostReviewed,
+    refetchMostReviewed,
     recentReviews,
     highlightReview,
-    productSlugById,
     totalReviews,
     isLoadingReviews,
     isErrorReviews,
@@ -63,7 +122,7 @@ export const HomeView = (props: HomeViewProps) => {
   } = props;
 
   const stats = [
-    { value: totalProducts, label: "produtos avaliados" },
+    { value: totalProducts, label: "produtos no catálogo" },
     { value: totalReviews, label: "avaliações publicadas" },
     { value: categories.length || undefined, label: "categorias" },
   ];
@@ -148,7 +207,7 @@ export const HomeView = (props: HomeViewProps) => {
           id="categorias-title"
           eyebrow="Navegue por categoria"
           title="Encontre o que você procura"
-          description="Escolha uma subcategoria para ver os produtos e o que as pessoas estão dizendo."
+          description="Escolha uma categoria ou subcategoria para ver os produtos e o que as pessoas estão dizendo."
         />
         {isErrorCategories ? (
           <ErrorState message="Não conseguimos carregar as categorias." onRetry={() => refetchCategories()} />
@@ -170,19 +229,28 @@ export const HomeView = (props: HomeViewProps) => {
                   idx % 2 === 0 ? "bg-brand-50" : "bg-surface",
                 )}
               >
-                <h3 className="text-xl font-semibold text-ink">{category.name}</h3>
+                <h3 className="text-xl font-semibold text-ink">
+                  <Link
+                    to="/categorias/$slug"
+                    params={{ slug: category.slug }}
+                    className="inline-flex items-center gap-1.5 underline-offset-4 hover:text-brand-700 hover:underline"
+                  >
+                    {category.name}
+                    <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                  </Link>
+                </h3>
                 {category.description && <p className="mt-1 text-sm text-muted">{category.description}</p>}
                 {category.subCategories.length > 0 ? (
                   <ul className="mt-5 flex flex-wrap gap-2" aria-label={`Subcategorias de ${category.name}`}>
                     {category.subCategories.map((sub) => (
                       <li key={sub.id}>
                         <Link
-                          to="/products"
+                          to="/categorias/$slug"
+                          params={{ slug: category.slug }}
                           search={{ sub: sub.id }}
                           className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong/40 bg-surface px-4 text-sm font-semibold text-ink transition-colors hover:border-brand-600 hover:text-brand-700"
                         >
                           {sub.name}
-                          <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
                         </Link>
                       </li>
                     ))}
@@ -194,6 +262,47 @@ export const HomeView = (props: HomeViewProps) => {
             ))}
           </ul>
         )}
+      </section>
+
+      {/* RANKING */}
+      <section aria-labelledby="ranking-title" className="container-page pt-16 sm:pt-20">
+        <SectionHeader
+          id="ranking-title"
+          eyebrow="Ranking da comunidade"
+          title="Os favoritos de quem avalia"
+          description="Produtos com as melhores notas e os que mais geraram conversa."
+          action={
+            <Link to="/ranking" className={cn(buttonVariants({ color: "outline" }), "self-start sm:self-auto")}>
+              <Trophy aria-hidden="true" className="h-4 w-4" />
+              Ver ranking completo
+              {totalRated !== undefined && totalRated > TOP_SIZE && (
+                <span className="text-muted">({formatInteger(totalRated)})</span>
+              )}
+            </Link>
+          }
+        />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TopList
+            id="top-nota-title"
+            title="Mais bem avaliados"
+            description="Maior nota média. No empate, vence quem tem mais avaliações."
+            products={topRated}
+            metric="rating"
+            isLoading={isLoadingTopRated}
+            isError={isErrorTopRated}
+            onRetry={() => refetchTopRated()}
+          />
+          <TopList
+            id="top-total-title"
+            title="Mais avaliados"
+            description="Os produtos com mais avaliações publicadas."
+            products={mostReviewed}
+            metric="reviews"
+            isLoading={isLoadingMostReviewed}
+            isError={isErrorMostReviewed}
+            onRetry={() => refetchMostReviewed()}
+          />
+        </div>
       </section>
 
       {/* DESTAQUES */}
@@ -225,7 +334,7 @@ export const HomeView = (props: HomeViewProps) => {
           <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
               <li key={product.id}>
-                <ProductCard product={product} summary={summaries[product.id]} />
+                <ProductCard product={product} />
               </li>
             ))}
           </ul>
@@ -259,7 +368,7 @@ export const HomeView = (props: HomeViewProps) => {
           <ul className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {recentReviews.slice(0, RECENT_REVIEWS_SIZE).map((review) => (
               <li key={review.id}>
-                <ReviewCard review={review} showProduct productSlug={productSlugById[review.productId]} />
+                <ReviewCard review={review} showProduct />
               </li>
             ))}
           </ul>

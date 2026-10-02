@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, LogOut, Menu, MessageSquareText, X } from "lucide-react";
 import { Logo } from "@/modules/site/components/Logo";
 import { buttonVariants } from "@/shared/components/button-variants";
 import { cn } from "@/shared/utils/utils";
@@ -24,6 +24,11 @@ const NavLinks = ({ onNavigate, vertical }: { onNavigate?: () => void; vertical?
       <li>
         <Link to="/products" className={cls} onClick={onNavigate}>
           Produtos
+        </Link>
+      </li>
+      <li>
+        <Link to="/ranking" className={cls} onClick={onNavigate}>
+          Ranking
         </Link>
       </li>
       <li>
@@ -107,6 +112,14 @@ export const SiteHeader = ({
                     <p className="truncate text-sm text-muted">{user.email}</p>
                   </div>
                   <div className="p-1.5">
+                    <Link
+                      to="/minhas-avaliacoes"
+                      onClick={toggleUserMenu}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-ink hover:bg-canvas"
+                    >
+                      <MessageSquareText aria-hidden="true" className="h-4 w-4" />
+                      Minhas avaliações
+                    </Link>
                     <button
                       type="button"
                       onClick={handleLogout}
@@ -172,6 +185,14 @@ export const SiteHeader = ({
                     <p className="truncate text-sm text-muted">{user.email}</p>
                   </div>
                 </div>
+                <Link
+                  to="/minhas-avaliacoes"
+                  onClick={toggleMobile}
+                  className="flex items-center gap-2 rounded-lg px-3 py-3 text-base font-semibold text-ink hover:bg-canvas"
+                >
+                  <MessageSquareText aria-hidden="true" className="h-5 w-5" />
+                  Minhas avaliações
+                </Link>
                 <button
                   type="button"
                   onClick={handleLogout}

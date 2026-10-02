@@ -44,6 +44,9 @@ export const useSignInModel = () => {
     try {
       await signIn(data);
       const user = await queryClient.fetchQuery({ queryKey: ["me"], queryFn: me, staleTime: 0 });
+      // As listas de avaliações trazem "helpfulByMe", que depende de quem está logado
+      queryClient.removeQueries({ queryKey: ["reviews", "me"] });
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
       toast.success(`Bem-vindo(a), ${user.name.split(" ")[0]}!`);
       // Respeita ?redirect= (apenas caminhos internos); pode conter #hash
       router.history.push(safeRedirectPath(redirect));

@@ -1,84 +1,107 @@
 import { Link } from "@tanstack/react-router";
-import { Eye, Mail, User, AtSign } from "lucide-react";
+import { AtSign, LockKeyhole, Mail, MailCheck, UserRound } from "lucide-react";
 import { Button } from "@/shared/components/button";
+import { buttonVariants } from "@/shared/components/button-variants";
 import { Input } from "@/shared/components/input";
-import { Label } from "@/shared/components/label";
+import { AuthHeading } from "../components/AuthHeading";
+import { FormAlert } from "../components/FormAlert";
 import { useSignUpModel } from "./sign-up.model";
 
 type SignUpViewProps = ReturnType<typeof useSignUpModel>;
 
-export const SignUpView = (props: SignUpViewProps) => {
-  const { errors, handleSubmit, onSubmit, register } = props;
+export const SignUpView = ({
+  errors,
+  handleSubmit,
+  onSubmit,
+  register,
+  isPending,
+  serverError,
+  createdEmail,
+}: SignUpViewProps) => {
+  if (createdEmail) {
+    return (
+      <div role="status" className="text-center">
+        <span aria-hidden="true" className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-success-soft text-success">
+          <MailCheck className="h-7 w-7" />
+        </span>
+        <h1 className="text-3xl font-bold text-ink">Confirme seu e-mail</h1>
+        <p className="mt-3 leading-relaxed text-muted">
+          Enviamos um link de ativação para <strong className="text-ink">{createdEmail}</strong>. Abra o e-mail e
+          clique no link para ativar sua conta. Depois é só entrar.
+        </p>
+        <Link to="/login" className={buttonVariants({ size: "lg", className: "mt-7 w-full" })}>
+          Ir para o login
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Input
-        {...register("name")}
-        color="primary"
-        type="text"
-        autoComplete="name"
-        placeholder="João Silva"
-        icon={<User size={24} />}
-        error={errors.name?.message}
-      >
-        <Label value="Nome completo:" htmlFor="name" />
-      </Input>
+    <>
+      <AuthHeading title="Criar conta" description="É grátis e leva menos de um minuto." />
+      <form noValidate onSubmit={handleSubmit(onSubmit)}>
+        <FormAlert>{serverError}</FormAlert>
 
-      <Input
-        {...register("username")}
-        color="primary"
-        type="text"
-        autoComplete="username"
-        placeholder="joao_silva"
-        icon={<AtSign size={24} />}
-        error={errors.username?.message}
-      >
-        <Label value="Username:" htmlFor="username" />
-      </Input>
+        <Input
+          {...register("name")}
+          label="Nome completo"
+          autoComplete="name"
+          icon={<UserRound />}
+          error={errors.name?.message}
+        />
 
-      <Input
-        {...register("email")}
-        color="primary"
-        type="email"
-        autoComplete="email"
-        placeholder="seu@email.com"
-        icon={<Mail size={24} />}
-        error={errors.email?.message}
-      >
-        <Label value="E-mail:" htmlFor="email" />
-      </Input>
+        <Input
+          {...register("username")}
+          label="Nome de usuário"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          icon={<AtSign />}
+          hint="Letras minúsculas, números, ponto e _. Aparece nas suas avaliações."
+          error={errors.username?.message}
+        />
 
-      <Input
-        {...register("password")}
-        color="primary"
-        type="password"
-        autoComplete="new-password"
-        placeholder="••••••••"
-        icon={<Eye size={24} />}
-        error={errors.password?.message}
-      >
-        <Label value="Senha:" htmlFor="password" />
-      </Input>
+        <Input
+          {...register("email")}
+          label="E-mail"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          icon={<Mail />}
+          error={errors.email?.message}
+        />
 
-      <div className="mb-5">
-        <Button
-          type="submit"
-          color="default"
-          size="lg"
-          className="flex w-full p-4 text-white transition border rounded-lg cursor-pointer border-primary bg-primary hover:bg-opacity-90"
-        >
-          Criar conta
+        <Input
+          {...register("password")}
+          label="Senha"
+          type="password"
+          autoComplete="new-password"
+          icon={<LockKeyhole />}
+          hint="De 6 a 20 caracteres."
+          error={errors.password?.message}
+        />
+
+        <Input
+          {...register("confirmPassword")}
+          label="Confirmar senha"
+          type="password"
+          autoComplete="new-password"
+          icon={<LockKeyhole />}
+          error={errors.confirmPassword?.message}
+          containerClassName="mb-6"
+        />
+
+        <Button type="submit" size="lg" loading={isPending} className="w-full">
+          {isPending ? "Criando conta…" : "Criar conta"}
         </Button>
-      </div>
+      </form>
 
-      <div className="mt-6 text-center">
-        <p>
-          Já tem conta?{" "}
-          <Link to="/" className="text-primary hover:underline">
-            Entrar
-          </Link>
-        </p>
-      </div>
-    </form>
+      <p className="mt-7 border-t border-line pt-6 text-center text-sm text-muted">
+        Já tem conta?{" "}
+        <Link to="/login" className="link">
+          Entrar
+        </Link>
+      </p>
+    </>
   );
 };

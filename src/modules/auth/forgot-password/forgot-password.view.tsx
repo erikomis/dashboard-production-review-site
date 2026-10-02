@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
-import { Label } from "@/shared/components/label";
+import { AuthHeading } from "../components/AuthHeading";
+import { FormAlert } from "../components/FormAlert";
 import { useForgotPasswordModel } from "./forgot-password.model";
 
 type ForgotPasswordViewProps = ReturnType<typeof useForgotPasswordModel>;
@@ -13,42 +14,48 @@ export const ForgotPasswordView = ({
   errors,
   isSubmitting,
   onSubmit,
+  serverError,
 }: ForgotPasswordViewProps) => {
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <h2 className="text-xl font-bold text-black mb-1">Recuperar senha</h2>
-      <p className="text-body text-sm mb-6">
-        Digite seu e-mail e enviaremos um código de recuperação.
-      </p>
+    <>
+      <p className="mb-2 text-sm font-semibold text-brand-700">Etapa 1 de 2</p>
+      <AuthHeading
+        title="Recuperar senha"
+        description="Informe o e-mail da sua conta. Vamos enviar um código de 6 dígitos para você criar uma nova senha."
+      />
+      <form noValidate onSubmit={handleSubmit(onSubmit)}>
+        <FormAlert>{serverError}</FormAlert>
 
-      <Input
-        {...register("email")}
-        type="email"
-        autoComplete="email"
-        placeholder="seu@email.com"
-        icon={<Mail size={24} />}
-        error={errors.email?.message}
-      >
-        <Label value="E-mail:" htmlFor="email" />
-      </Input>
+        <Input
+          {...register("email")}
+          label="E-mail"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          icon={<Mail />}
+          error={errors.email?.message}
+          containerClassName="mb-6"
+        />
 
-      <div className="mb-5">
-        <Button
-          type="submit"
-          color="default"
-          size="lg"
-          className="flex w-full p-4 text-white transition border rounded-lg cursor-pointer border-primary bg-primary hover:bg-opacity-90"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Enviando..." : "Enviar código"}
+        <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
+          {isSubmitting ? "Enviando código…" : "Enviar código"}
         </Button>
-      </div>
+      </form>
 
-      <div className="mt-4 text-center">
-        <Link to="/" className="text-primary hover:underline text-sm">
-          Voltar para o login
-        </Link>
+      <div className="mt-7 flex flex-col gap-2 border-t border-line pt-6 text-center text-sm text-muted">
+        <p>
+          Já tem um código?{" "}
+          <Link to="/reset-password" className="link">
+            Redefinir senha
+          </Link>
+        </p>
+        <p>
+          Lembrou a senha?{" "}
+          <Link to="/login" className="link">
+            Voltar para o login
+          </Link>
+        </p>
       </div>
-    </form>
+    </>
   );
 };

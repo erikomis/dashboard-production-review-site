@@ -1,22 +1,21 @@
-import { AxiosError } from "axios";
 import { api } from "@/shared/services/api";
+import { toHttpError } from "@/shared/services/http-error";
 
 type SignInProps = {
-  email: string;
+  /** username ou e-mail (a API aceita os dois no campo `username`) */
+  username: string;
   password: string;
 };
 
-export const SignInService = async ({ email, password }: SignInProps) => {
+export const SignInService = async ({ username, password }: SignInProps) => {
   try {
     const response = await api.request({
       url: "/auth/sign-in",
       method: "POST",
-      data: { email, password },
+      data: { username: username.trim(), password },
     });
     return response;
   } catch (er) {
-    const error = er as AxiosError<{ message: string }>;
-    const message = (error.response?.data?.message as string) || error.message;
-    throw new Error(`${message}`);
+    throw toHttpError(er);
   }
 };

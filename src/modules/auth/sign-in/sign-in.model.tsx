@@ -1,37 +1,64 @@
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useRouter, useSearch } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import { AxiosError } from "axios";
+import { queryClient } from "@/shared/libs/react-query";
+import { HttpError } from "@/shared/services/http-error";
+import { me } from "@/shared/services/me";
+import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
+import { safeRedirectPath } from "@/shared/utils/format";
 import { SchemaSignIn } from "./sign-in.schema";
 import { SignInValues } from "./sign-in.type";
 import { useMutationSignIn } from "../hooks/useMutationSignIn";
-import { queryClient } from "@/shared/libs/react-query";
+
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof HttpError) {
+    if (error.status === 401) return "E-mail, usuário ou senha incorretos.";
+    if (error.status === 403)
+      return "Sua conta ainda não foi ativada. Reenviamos o link de ativação para o seu e-mail.";
+    return error.message;
+  }
+  return "Não foi possível entrar. Tente novamente.";
+};
 
 export const useSignInModel = () => {
-  const navigate = useNavigate();
-  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
-  const redirect = new URLSearchParams(searchStr).get("redirect") ?? undefined;
+  useDocumentTitle("Entrar");
+  const router = useRouter();
+  const { redirect } = useSearch({ from: "/auth/login" });
+  const [serverError, setServerError] = useState<string>();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<SignInValues>({
     resolver: zodResolver(SchemaSignIn),
+    defaultValues: { username: "", password: "" },
   });
 
-  const { mutateAsync: signIn } = useMutationSignIn();
+  const { mutateAsync: signIn, isPending } = useMutationSignIn();
 
   const onSubmit: SubmitHandler<SignInValues> = async (data) => {
+    setServerError(undefined);
     try {
       await signIn(data);
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
-      navigate({ to: redirect ?? "/" } as Parameters<typeof navigate>[0]);
+      const user = await queryClient.fetchQuery({ queryKey: ["me"], queryFn: me, staleTime: 0 });
+      toast.success(`Bem-vindo(a), ${user.name.split(" ")[0]}!`);
+      // Respeita ?redirect= (apenas caminhos internos); pode conter #hash
+      router.history.push(safeRedirectPath(redirect));
     } catch (er) {
-      const error = er as AxiosError<{ message: string }>;
-      toast.error(error.message || "E-mail ou senha incorretos.");
+      setServerError(getErrorMessage(er));
     }
   };
 
-  return { onSubmit, handleSubmit, register, errors };
+  return {
+    onSubmit,
+    handleSubmit,
+    register,
+    errors,
+    isPending,
+    serverError,
+    redirect,
+  };
 };

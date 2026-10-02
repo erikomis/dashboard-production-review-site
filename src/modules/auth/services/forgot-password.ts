@@ -1,6 +1,7 @@
-import { AxiosError } from "axios";
 import { api } from "@/shared/services/api";
+import { toHttpError } from "@/shared/services/http-error";
 
+/** POST /auth/send-recovery-code/send — envia código de 6 dígitos por e-mail. */
 export const ForgotPasswordService = async (email: string) => {
   try {
     const response = await api.request({
@@ -10,8 +11,6 @@ export const ForgotPasswordService = async (email: string) => {
     });
     return response;
   } catch (er) {
-    const error = er as AxiosError<{ message: string }>;
-    const message = (error.response?.data?.message as string) || error.message;
-    throw new Error(`${message}`);
+    throw toHttpError(er);
   }
 };

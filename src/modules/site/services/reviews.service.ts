@@ -1,42 +1,65 @@
-import { AxiosError } from "axios";
 import { api } from "@/shared/services/api";
-import type { Review, ReviewPage } from "@/shared/types/review";
-
-export type CreateReviewDto = {
-  title: string;
-  content: string;
-  rating: number;
-  productId: string;
-};
+import { toHttpError } from "@/shared/services/http-error";
+import type {
+  CreateReviewDto,
+  Review,
+  ReviewPage,
+  ReviewSummary,
+} from "@/shared/types/review";
 
 export const ReviewsService = {
-  listByProduct: async (productId: string, page = 0, size = 20): Promise<ReviewPage> => {
+  /** GET /review/list — avaliações mais recentes de todos os produtos. */
+  listRecent: async (page = 0, size = 6): Promise<ReviewPage> => {
     try {
       const response = await api.request<ReviewPage>({
-        url: `/review/list?page=${page}&size=${size}`,
+        url: "/review/list",
         method: "GET",
+        params: { page, size },
       });
-      return {
-        ...response.data,
-        content: response.data.content.filter((r: Review) => r.productId === productId),
-      };
+      return response.data;
     } catch (er) {
-      const error = er as AxiosError<{ message: string }>;
-      throw new Error(error.response?.data?.message || error.message);
+      throw toHttpError(er);
     }
   },
 
+  /** GET /review/product/{productId} — paginado, mais recentes primeiro. */
+  listByProduct: async (productId: number, page = 0, size = 10): Promise<ReviewPage> => {
+    try {
+      const response = await api.request<ReviewPage>({
+        url: `/review/product/${productId}`,
+        method: "GET",
+        params: { page, size },
+      });
+      return response.data;
+    } catch (er) {
+      throw toHttpError(er);
+    }
+  },
+
+  /** GET /review/product/{productId}/summary — média e total. */
+  getSummary: async (productId: number): Promise<ReviewSummary> => {
+    try {
+      const response = await api.request<ReviewSummary>({
+        url: `/review/product/${productId}/summary`,
+        method: "GET",
+      });
+      return response.data;
+    } catch (er) {
+      throw toHttpError(er);
+    }
+  },
+
+  /** POST /review/ (barra final) — exige login. */
   create: async (dto: CreateReviewDto): Promise<Review> => {
     try {
       const response = await api.request<Review>({
-        url: "/review/create",
+        url: "/review/",
         method: "POST",
         data: dto,
       });
       return response.data;
     } catch (er) {
-      const error = er as AxiosError<{ message: string }>;
-      throw new Error(error.response?.data?.message || error.message);
+      throw toHttpError(er);
     }
   },
 };

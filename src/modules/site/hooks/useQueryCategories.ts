@@ -5,4 +5,5 @@ export const useQueryCategories = () =>
   useQuery({
     queryKey: ["categories"],
     queryFn: () => CategoryService.list(),
+    staleTime: 1000 * 60 * 30,
   });

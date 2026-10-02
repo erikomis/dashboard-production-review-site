@@ -1,11 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { ReviewsService, CreateReviewDto } from "@/modules/site/services/reviews.service";
+import { ReviewsService } from "@/modules/site/services/reviews.service";
 import { queryClient } from "@/shared/libs/react-query";
+import type { CreateReviewDto } from "@/shared/types/review";
+import { reviewKeys } from "./useQueryReviews";
 
-export const useMutationReview = (productId: string) =>
+export const useMutationReview = () =>
   useMutation({
     mutationFn: (dto: CreateReviewDto) => ReviewsService.create(dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["reviews", productId] });
-    },
+    onSuccess: () =>
+      // lista do produto, resumo (média/total) e avaliações recentes da home
+      queryClient.invalidateQueries({ queryKey: reviewKeys.all }),
   });

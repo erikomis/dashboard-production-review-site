@@ -1,12 +1,18 @@
 import { api } from "@/shared/services/api";
-import { Category } from "@/shared/types/category";
+import { toHttpError } from "@/shared/services/http-error";
+import type { Category } from "@/shared/types/category";
 
 export const CategoryService = {
-  list: async () => {
-    const response = await api.request<Category[]>({
-      method: "GET",
-      url: "/category/list",
-    });
-    return response.data;
+  /** GET /category/list — categorias com subcategorias aninhadas. */
+  list: async (): Promise<Category[]> => {
+    try {
+      const response = await api.request<Category[]>({
+        method: "GET",
+        url: "/category/list",
+      });
+      return response.data;
+    } catch (er) {
+      throw toHttpError(er);
+    }
   },
 };

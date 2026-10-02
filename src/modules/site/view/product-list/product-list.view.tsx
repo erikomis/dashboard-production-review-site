@@ -7,7 +7,8 @@ import { Button } from "@/shared/components/button";
 import { EmptyState, ErrorState } from "@/shared/components/state";
 import { pluralize } from "@/shared/utils/format";
 import { cn } from "@/shared/utils/utils";
-import { PAGE_SIZE, SORT_OPTIONS, useProductListModel } from "./product-list.model";
+import { PRODUCT_SORT_OPTIONS as SORT_OPTIONS } from "@/modules/site/constants/product-sort";
+import { PAGE_SIZE, useProductListModel } from "./product-list.model";
 
 type ProductListViewProps = ReturnType<typeof useProductListModel>;
 
@@ -30,7 +31,6 @@ export const ProductListView = ({
   subCategories,
   activeSubCategory,
   products,
-  summaries,
   totalPages,
   totalElements,
   isLoading,
@@ -66,6 +66,14 @@ export const ProductListView = ({
                     </Link>
                   ),
                 },
+                {
+                  label: activeSubCategory.categoryName,
+                  link: (children, className) => (
+                    <Link to="/categorias/$slug" params={{ slug: activeSubCategory.categorySlug }} className={className}>
+                      {children}
+                    </Link>
+                  ),
+                },
                 { label: activeSubCategory.name },
               ]
             : [{ label: "Produtos" }]
@@ -76,7 +84,10 @@ export const ProductListView = ({
         <h1 className="text-3xl font-bold text-ink sm:text-4xl">{title}</h1>
         {activeSubCategory && !q && (
           <p className="text-muted">
-            {activeSubCategory.categoryName} · {activeSubCategory.description}
+            <Link to="/categorias/$slug" params={{ slug: activeSubCategory.categorySlug }} className="link">
+              {activeSubCategory.categoryName}
+            </Link>
+            {activeSubCategory.description && <> · {activeSubCategory.description}</>}
           </p>
         )}
       </div>
@@ -197,7 +208,7 @@ export const ProductListView = ({
           >
             {products.map((product) => (
               <li key={product.id}>
-                <ProductCard product={product} summary={summaries[product.id]} />
+                <ProductCard product={product} />
               </li>
             ))}
           </ul>

@@ -7,50 +7,45 @@ import type {
   ProductSort,
 } from "@/shared/types/product";
 
+/** Ordenação do site -> parâmetros property/sort da API. */
 const SORT_PARAMS: Record<ProductSort, { property: string; sort: "ASC" | "DESC" }> = {
   recent: { property: "createdAt", sort: "DESC" },
   "name-asc": { property: "name", sort: "ASC" },
   "name-desc": { property: "name", sort: "DESC" },
-};
-
-/** Maior página aceita pela API. */
-const MAX_PAGE_SIZE = 100;
-
-const fetchPage = async ({
-  page = 0,
-  size = 12,
-  search,
-  sort = "recent",
-}: ProductListParams): Promise<ProductPage> => {
-  const response = await api.request<ProductPage>({
-    url: "/production/list",
-    method: "GET",
-    params: {
-      page,
-      size,
-      search: search?.trim() || undefined,
-      ...SORT_PARAMS[sort],
-    },
-  });
-  return response.data;
+  // A API desempata a média pelo total de avaliações (DESC) e deixa os sem nota por último
+  rating: { property: "averageNote", sort: "DESC" },
+  popular: { property: "totalReviews", sort: "DESC" },
 };
 
 export const ProductsService = {
-  /** GET /production/list (paginado, busca por nome e ordenação). */
-  list: async (params: ProductListParams = {}): Promise<ProductPage> => {
+  /**
+   * GET /production/list — página de ProductSummary (já com nota média, total,
+   * foto e nomes de categoria/subcategoria). Filtros e ordenação no servidor.
+   */
+  list: async ({
+    page = 0,
+    size = 12,
+    search,
+    sort = "recent",
+    categoryId,
+    subCategorieId,
+    onlyRated,
+  }: ProductListParams = {}): Promise<ProductPage> => {
     try {
-      const { subCategorieId, page = 0, size = 12 } = params;
-      if (!subCategorieId) return await fetchPage(params);
-
-      // A API não filtra por subcategoria: buscamos a maior página permitida
-      // e filtramos/paginamos no cliente.
-      const all = await fetchPage({ ...params, page: 0, size: MAX_PAGE_SIZE });
-      const filtered = all.content.filter((p) => p.subCategorieId === subCategorieId);
-      const totalPages = Math.max(1, Math.ceil(filtered.length / size));
-      return {
-        content: filtered.slice(page * size, page * size + size),
-        page: { size, number: page, totalElements: filtered.length, totalPages },
-      };
+      const response = await api.request<ProductPage>({
+        url: "/production/list",
+        method: "GET",
+        params: {
+          page,
+          size,
+          search: search?.trim() || undefined,
+          categoryId: categoryId || undefined,
+          subCategorieId: subCategorieId || undefined,
+          onlyRated: onlyRated || undefined,
+          ...SORT_PARAMS[sort],
+        },
+      });
+      return response.data;
     } catch (er) {
       throw toHttpError(er);
     }
@@ -71,4 +66,3 @@ export const ProductsService = {
     }
   },
 };
-

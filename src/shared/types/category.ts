@@ -17,3 +17,12 @@ export interface Category {
   createdAt?: string;
   updatedAt?: string;
 }
+
+/** Retornado por GET /category/slug/{slug} */
+export interface CategoryDetail {
+  id: number;
+  name: string;
+  description?: string;
+  slug: string;
+  subCategories: Pick<SubCategory, "id" | "name" | "description" | "slug">[];
+}

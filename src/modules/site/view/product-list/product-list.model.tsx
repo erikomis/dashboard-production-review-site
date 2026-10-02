@@ -2,18 +2,12 @@ import { FormEvent, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useQueryProducts } from "@/modules/site/hooks/useQueryProducts";
 import { useQueryCategories } from "@/modules/site/hooks/useQueryCategories";
-import { useQueryReviewSummaries } from "@/modules/site/hooks/useQueryReviews";
 import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
 import type { ProductSort } from "@/shared/types/product";
 import type { ProductListSearch } from "./product-list.type";
 
 export const PAGE_SIZE = 12;
 
-export const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
-  { value: "recent", label: "Mais recentes" },
-  { value: "name-asc", label: "Nome (A–Z)" },
-  { value: "name-desc", label: "Nome (Z–A)" },
-];
 
 export const useProductListModel = () => {
   const navigate = useNavigate();
@@ -38,12 +32,11 @@ export const useProductListModel = () => {
   const { data: categories } = useQueryCategories();
 
   const products = useMemo(() => productsQuery.data?.content ?? [], [productsQuery.data]);
-  const summaries = useQueryReviewSummaries(products.map((p) => p.id));
   const totalPages = productsQuery.data?.page.totalPages ?? 0;
   const totalElements = productsQuery.data?.page.totalElements ?? 0;
 
   const subCategories = useMemo(
-    () => (categories ?? []).flatMap((c) => c.subCategories.map((s) => ({ ...s, categoryName: c.name }))),
+    () => (categories ?? []).flatMap((c) => c.subCategories.map((s) => ({ ...s, categoryName: c.name, categorySlug: c.slug }))),
     [categories],
   );
   const activeSubCategory = subCategories.find((s) => s.id === subCategorieId);
@@ -55,8 +48,8 @@ export const useProductListModel = () => {
   const updateSearch = (next: Partial<ProductListSearch>) =>
     navigate({
       to: "/products",
-      search: (prev) => {
-        const merged = { ...prev, ...next };
+      search: () => {
+        const merged: ProductListSearch = { ...search, ...next };
         // remove valores padrão para manter a URL limpa
         return {
           q: merged.q || undefined,
@@ -106,7 +99,6 @@ export const useProductListModel = () => {
     subCategories,
     activeSubCategory,
     products,
-    summaries,
     totalPages,
     totalElements,
     isLoading: productsQuery.isPending,

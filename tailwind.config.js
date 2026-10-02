@@ -1,8 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 import defaultTheme from "tailwindcss/defaultTheme";
 
+/** Cor definida por variável CSS (canais RGB), para os temas claro e escuro e com suporte a /opacidade. */
+const themed = (name) => `rgb(var(--c-${name}) / <alpha-value>)`;
+
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  // A classe "dark" no <html> é aplicada antes da pintura por um script inline no index.html
+  darkMode: "class",
   theme: {
     screens: {
       xs: "400px",
@@ -15,49 +20,60 @@ export default {
         display: ['"Plus Jakarta Sans"', "Inter", ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        // Paleta compartilhada com o dashboard (primary #3C50E0).
-        // Todos os pares texto/fundo usados abaixo atingem contraste AA (>= 4.5:1).
+        // Paleta compartilhada com o dashboard (primary #3C50E0). Os tokens neutros e os tons de
+        // texto da marca mudam com o tema (valores em src/index.css); todos os pares texto/fundo
+        // usados no site atingem contraste AA (>= 4.5:1) nos dois temas.
         ink: {
-          DEFAULT: "#1C2434", // texto principal (15:1 sobre canvas)
-          soft: "#334155", // texto secundário forte
+          DEFAULT: themed("ink"), // texto principal
+          soft: themed("ink-soft"), // texto secundário forte
         },
-        muted: "#556274", // texto auxiliar (6:1 sobre branco)
-        canvas: "#F5F7FB", // fundo da página
-        surface: "#FFFFFF",
+        muted: themed("muted"), // texto auxiliar
+        canvas: themed("canvas"), // fundo da página
+        surface: themed("surface"), // cards, menus e campos
         line: {
-          DEFAULT: "#E2E8F0",
-          strong: "#7A889C", // bordas de campos (3.6:1 sobre branco)
+          DEFAULT: themed("line"),
+          strong: themed("line-strong"), // bordas de campos (>= 3:1)
+        },
+        // Fundo suave da marca (chips, avatares, destaques)
+        tint: {
+          DEFAULT: themed("brand-50"),
+          strong: themed("tint-strong"),
         },
         brand: {
-          50: "#EEF1FE",
-          100: "#DFE4FD",
+          50: themed("brand-50"),
+          100: "#DFE4FD", // texto sobre o índigo escuro (hero, rodapé)
           200: "#C3CBFB",
           300: "#98A5F6",
           500: "#4F63EA",
-          600: "#3C50E0", // botões/links (6.2:1 com branco)
-          700: "#3040B8",
-          800: "#283590",
-          900: "#1F2A6E",
+          600: "#3C50E0", // botões (6.2:1 com branco), igual nos dois temas
+          700: themed("brand-700"), // links e destaques de texto
+          800: themed("brand-800"),
+          900: themed("brand-900"),
           950: "#141B45",
         },
-        primary: "#3C50E0",
-        star: {
-          DEFAULT: "#D97706", // estrela preenchida (3.2:1 sobre branco), igual ao dashboard
-          empty: "#CBD5E1",
+        primary: {
+          DEFAULT: "#3C50E0",
+          hover: "#3040B8",
+          active: "#283590",
         },
-        cream: "#FEF3C7", // destaque âmbar suave (combina com as estrelas)
+        star: {
+          DEFAULT: "#D97706", // estrela preenchida, igual ao dashboard
+          empty: themed("star-empty"),
+        },
+        cream: themed("cream"), // destaque âmbar suave (combina com as estrelas)
         danger: {
-          DEFAULT: "#B42318", // 6.2:1 sobre branco
-          soft: "#FEF3F2",
+          DEFAULT: themed("danger"),
+          soft: themed("danger-soft"),
+          solid: "#B42318", // fundo de botão destrutivo (6.2:1 com branco)
         },
         success: {
-          DEFAULT: "#067647",
-          soft: "#ECFDF3",
+          DEFAULT: themed("success"),
+          soft: themed("success-soft"),
         },
       },
       boxShadow: {
-        card: "0 1px 2px rgba(28, 36, 52, 0.06), 0 1px 1px rgba(28, 36, 52, 0.04)",
-        raised: "0 12px 32px -12px rgba(28, 36, 52, 0.22)",
+        card: "0 1px 2px rgb(var(--c-shadow) / 0.06), 0 1px 1px rgb(var(--c-shadow) / 0.04)",
+        raised: "0 12px 32px -12px rgb(var(--c-shadow) / 0.22)",
       },
       maxWidth: {
         content: "76rem",
@@ -68,9 +84,27 @@ export default {
           "50%": { opacity: "0.55" },
           "100%": { opacity: "1" },
         },
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(4px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "pop-in": {
+          from: { opacity: "0", transform: "scale(0.96)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        "bell-ring": {
+          "0%, 100%": { transform: "rotate(0)" },
+          "20%": { transform: "rotate(14deg)" },
+          "40%": { transform: "rotate(-10deg)" },
+          "60%": { transform: "rotate(6deg)" },
+          "80%": { transform: "rotate(-3deg)" },
+        },
       },
       animation: {
         shimmer: "shimmer 1.6s ease-in-out infinite",
+        "fade-in": "fade-in 180ms ease-out both",
+        "pop-in": "pop-in 160ms ease-out both",
+        "bell-ring": "bell-ring 700ms ease-in-out 1",
       },
     },
   },

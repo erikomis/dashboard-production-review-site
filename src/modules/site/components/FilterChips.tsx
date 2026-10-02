@@ -39,7 +39,7 @@ export const FilterChips = ({
             className={cn(
               "inline-flex h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors",
               active
-                ? "border-ink bg-ink text-white"
+                ? "border-ink bg-ink text-surface"
                 : "border-line-strong/50 bg-surface text-ink hover:border-brand-600 hover:text-brand-700",
             )}
           >

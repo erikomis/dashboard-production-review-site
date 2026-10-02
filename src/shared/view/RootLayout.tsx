@@ -4,9 +4,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { queryClient } from "../libs/react-query";
+import { useTheme } from "../hooks/useTheme";
 
 /** Raiz da aplicação: providers, toasts e devtools (só em desenvolvimento). */
-export const RootLayout = () => (
+export const RootLayout = () => {
+  const { resolved } = useTheme();
+  return (
   <QueryClientProvider client={queryClient}>
     <Outlet />
     <ToastContainer
@@ -18,8 +21,9 @@ export const RootLayout = () => (
       pauseOnFocusLoss
       draggable
       pauseOnHover
-      theme="light"
+      theme={resolved}
     />
     {import.meta.env.DEV && <TanStackRouterDevtools />}
   </QueryClientProvider>
-);
+  );
+};

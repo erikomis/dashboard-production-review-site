@@ -60,7 +60,7 @@ export const Pagination = ({ page, totalPages, onPageChange, label = "Paginaçã
                 className={cn(
                   itemClass,
                   item === page
-                    ? "bg-ink text-white"
+                    ? "bg-ink text-surface"
                     : "border border-transparent text-ink hover:border-line hover:bg-surface",
                 )}
               >

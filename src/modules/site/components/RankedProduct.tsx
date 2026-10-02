@@ -18,8 +18,8 @@ interface RankedProductProps {
 
 // Pódio em tons suaves (texto com contraste AA sobre o fundo)
 const PODIUM = [
-  "bg-cream text-[#92400E] ring-2 ring-star/60", // 1º — âmbar das estrelas
-  "bg-[#E2E8F0] text-ink", // 2º — prata
+  "bg-[#FEF3C7] text-[#92400E] ring-2 ring-star/60", // 1º — âmbar das estrelas (igual nos dois temas)
+  "bg-[#E2E8F0] text-[#1C2434]", // 2º — prata
   "bg-[#FFEDD5] text-[#9A3412]", // 3º — bronze
 ];
 

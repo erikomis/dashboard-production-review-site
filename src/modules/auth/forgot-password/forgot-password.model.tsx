@@ -3,7 +3,9 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import { HttpError } from "@/shared/services/http-error";
+import { HttpError, isRateLimited } from "@/shared/services/http-error";
+import { useCooldown } from "@/shared/hooks/useCooldown";
+
 import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
 import { SchemaForgotPassword } from "./forgot-password.schema";
 import { ForgotPasswordValues } from "./forgot-password.type";
@@ -21,6 +23,7 @@ export const useForgotPasswordModel = () => {
   useDocumentTitle("Recuperar senha");
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string>();
+  const cooldown = useCooldown();
   const {
     register,
     handleSubmit,
@@ -39,8 +42,11 @@ export const useForgotPasswordModel = () => {
       navigate({ to: "/reset-password", search: { email } });
     } catch (er) {
       setServerError(getErrorMessage(er));
+      // 429: bloqueia o envio até acabar o tempo do Retry-After
+      if (isRateLimited(er)) cooldown.start((er as HttpError).retryAfter ?? 60);
     }
   };
 
-  return { register, handleSubmit, errors, isSubmitting, onSubmit, serverError };
+  return {
+    retryIn: cooldown.remaining, register, handleSubmit, errors, isSubmitting, onSubmit, serverError };
 };

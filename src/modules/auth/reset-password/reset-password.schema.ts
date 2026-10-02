@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { passwordPolicySchema } from "@/shared/validation/password";
 
 export const SchemaResetPassword = z
   .object({
@@ -7,11 +8,8 @@ export const SchemaResetPassword = z
       .string()
       .trim()
       .regex(/^\d{6}$/, { message: "O código tem 6 dígitos numéricos." }),
-    // A API aceita de 3 a 20 caracteres; exigimos no mínimo 6 por segurança
-    password: z
-      .string()
-      .min(6, { message: "A senha precisa ter pelo menos 6 caracteres." })
-      .max(20, { message: "A senha pode ter no máximo 20 caracteres." }),
+    // Mesma política da API: 8 a 72 caracteres, com letras e números
+    password: passwordPolicySchema,
     confirmPassword: z.string().min(1, { message: "Confirme a nova senha." }),
   })
   .refine((data) => data.password === data.confirmPassword, {

@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { KeyRound, LockKeyhole, Mail } from "lucide-react";
 import { Button } from "@/shared/components/button";
+import { formatCountdown } from "@/shared/hooks/useCooldown";
 import { Input } from "@/shared/components/input";
+import { PasswordRequirements } from "@/shared/components/password-requirements";
 import { AuthHeading } from "../components/AuthHeading";
 import { FormAlert } from "../components/FormAlert";
 import { useResetPasswordModel } from "./reset-password.model";
@@ -15,6 +17,8 @@ export const ResetPasswordView = ({
   isSubmitting,
   onSubmit,
   serverError,
+  retryIn,
+  passwordValue,
   hasEmailFromUrl,
 }: ResetPasswordViewProps) => {
   return (
@@ -57,9 +61,11 @@ export const ResetPasswordView = ({
           type="password"
           autoComplete="new-password"
           icon={<LockKeyhole />}
-          hint="De 6 a 20 caracteres."
+          hint="De 8 a 72 caracteres, com letras e números."
+          maxLength={72}
           error={errors.password?.message}
         />
+        <PasswordRequirements value={passwordValue} />
 
         <Input
           {...register("confirmPassword")}
@@ -71,8 +77,8 @@ export const ResetPasswordView = ({
           containerClassName="mb-6"
         />
 
-        <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
-          {isSubmitting ? "Salvando…" : "Redefinir senha"}
+        <Button type="submit" size="lg" loading={isSubmitting} disabled={retryIn > 0} className="w-full">
+          {retryIn > 0 ? `Aguarde ${formatCountdown(retryIn)}` : isSubmitting ? "Salvando…" : "Redefinir senha"}
         </Button>
       </form>
 

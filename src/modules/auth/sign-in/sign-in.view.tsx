@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { LockKeyhole, UserRound } from "lucide-react";
 import { Button } from "@/shared/components/button";
+import { formatCountdown } from "@/shared/hooks/useCooldown";
 import { Input } from "@/shared/components/input";
 import { AuthHeading } from "../components/AuthHeading";
 import { FormAlert } from "../components/FormAlert";
@@ -8,7 +9,7 @@ import { useSignInModel } from "./sign-in.model";
 
 type SignInViewProps = ReturnType<typeof useSignInModel>;
 
-export const SignInView = ({ errors, handleSubmit, onSubmit, register, isPending, serverError }: SignInViewProps) => {
+export const SignInView = ({ errors, handleSubmit, onSubmit, register, isPending, serverError, retryIn }: SignInViewProps) => {
   return (
     <>
       <AuthHeading title="Entrar" description="Acesse sua conta para publicar avaliações." />
@@ -41,8 +42,8 @@ export const SignInView = ({ errors, handleSubmit, onSubmit, register, isPending
           </Link>
         </div>
 
-        <Button type="submit" size="lg" loading={isPending} className="w-full">
-          {isPending ? "Entrando…" : "Entrar"}
+        <Button type="submit" size="lg" loading={isPending} disabled={retryIn > 0} className="w-full">
+          {retryIn > 0 ? `Aguarde ${formatCountdown(retryIn)}` : isPending ? "Entrando…" : "Entrar"}
         </Button>
       </form>
 

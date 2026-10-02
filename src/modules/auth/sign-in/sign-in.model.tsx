@@ -4,7 +4,9 @@ import { useRouter, useSearch } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { queryClient } from "@/shared/libs/react-query";
-import { HttpError } from "@/shared/services/http-error";
+import { HttpError, isRateLimited } from "@/shared/services/http-error";
+import { useCooldown } from "@/shared/hooks/useCooldown";
+
 import { me } from "@/shared/services/me";
 import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
 import { safeRedirectPath } from "@/shared/utils/format";
@@ -27,6 +29,7 @@ export const useSignInModel = () => {
   const router = useRouter();
   const { redirect } = useSearch({ from: "/auth/login" });
   const [serverError, setServerError] = useState<string>();
+  const cooldown = useCooldown();
 
   const {
     register,
@@ -47,15 +50,21 @@ export const useSignInModel = () => {
       // As listas de avaliações trazem "helpfulByMe", que depende de quem está logado
       queryClient.removeQueries({ queryKey: ["reviews", "me"] });
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      // Seguir e notificações também dependem da conta
+      queryClient.removeQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
       toast.success(`Bem-vindo(a), ${user.name.split(" ")[0]}!`);
       // Respeita ?redirect= (apenas caminhos internos); pode conter #hash
       router.history.push(safeRedirectPath(redirect));
     } catch (er) {
       setServerError(getErrorMessage(er));
+      // 429: bloqueia o envio até acabar o tempo do Retry-After
+      if (isRateLimited(er)) cooldown.start((er as HttpError).retryAfter ?? 60);
     }
   };
 
   return {
+    retryIn: cooldown.remaining,
     onSubmit,
     handleSubmit,
     register,

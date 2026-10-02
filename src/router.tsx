@@ -14,10 +14,15 @@ import "react-toastify/dist/ReactToastify.css";
 import { queryClient } from "./shared/libs/react-query";
 import { me } from "./shared/services/me";
 import { Loading } from "./shared/components/loading/Loading";
+import { ErrorState } from "./shared/components/state";
 import { LayoutAuth } from "./modules/auth/Layout/LayoutAuth";
 import { LayoutSite } from "./modules/site/layout/LayoutSite";
 import { NotFoundView } from "./shared/view/NotFoundView";
-import { ProductsService } from "./modules/site/services/products.service";
+import { productBySlugQueryOptions } from "./modules/site/hooks/useQueryProducts";
+import { SchemaProductListSearch } from "./modules/site/view/product-list/product-list.schema";
+import { SchemaProductDetailSearch } from "./modules/site/view/product-detail/product-detail.schema";
+import { SchemaSignInSearch } from "./modules/auth/sign-in/sign-in.schema";
+import { SchemaResetPasswordSearch } from "./modules/auth/reset-password/reset-password.schema";
 
 const SignInPage = lazy(() => import("./modules/auth/sign-in/SignInPage"));
 const SignUpPage = lazy(() => import("./modules/auth/sign-up/SignUpPage"));
@@ -26,6 +31,9 @@ const ForgotPasswordPage = lazy(
 );
 const ResetPasswordPage = lazy(
   () => import("./modules/auth/reset-password/ResetPasswordPage")
+);
+const ActivateAccountPage = lazy(
+  () => import("./modules/auth/activate-account/ActivateAccountPage")
 );
 const HomePage = lazy(() => import("./modules/site/view/home/HomePage"));
 const ProductListPage = lazy(
@@ -36,11 +44,13 @@ const ProductDetailPage = lazy(
 );
 
 const RouteError = ({ error }: { error: unknown }) => (
-  <div className="flex flex-col items-center justify-center py-16 gap-2 text-center">
-    <p className="text-lg font-semibold text-danger">Erro ao carregar página</p>
-    <p className="text-sm text-body">
-      {error instanceof Error ? error.message : "Tente novamente mais tarde."}
-    </p>
+  <div className="container-page py-16">
+    <h1 className="sr-only">Erro ao carregar a página</h1>
+    <ErrorState
+      title="Erro ao carregar a página"
+      message={error instanceof Error ? error.message : "Tente novamente mais tarde."}
+      onRetry={() => window.location.reload()}
+    />
   </div>
 );
 
@@ -52,9 +62,8 @@ const rootRoute = createRootRoute({
       <ToastContainer
         position="bottom-right"
         autoClose={5000}
-        hideProgressBar={false}
         newestOnTop={false}
-        closeOnClick
+        closeOnClick={false}
         rtl={false}
         pauseOnFocusLoss
         draggable
@@ -71,6 +80,9 @@ const authLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "auth",
   beforeLoad: async () => {
+    // Visitante já confirmado como não logado há pouco: evita outro 401 em /user/me
+    const state = queryClient.getQueryState(["me"]);
+    if (state?.status === "error" && Date.now() - state.errorUpdatedAt < 60_000) return;
     const user = await queryClient
       .ensureQueryData({ queryKey: ["me"], queryFn: me })
       .catch(() => null);
@@ -82,9 +94,7 @@ const authLayoutRoute = createRoute({
 const signInRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: "/login",
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
-    redirect: search.redirect ? String(search.redirect) : undefined,
-  }),
+  validateSearch: (search) => SchemaSignInSearch.parse(search),
   component: () => (
     <Suspense fallback={<Loading />}>
       <SignInPage />
@@ -115,6 +125,7 @@ const forgotPasswordRoute = createRoute({
 const resetPasswordRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: "/reset-password",
+  validateSearch: (search) => SchemaResetPasswordSearch.parse(search),
   component: () => (
     <Suspense fallback={<Loading />}>
       <ResetPasswordPage />
@@ -122,7 +133,19 @@ const resetPasswordRoute = createRoute({
   ),
 });
 
-// Site layout — público, rota principal é /
+// Link enviado por e-mail no cadastro: {origin}/activate-account/{token}
+const activateAccountRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: "/activate-account/$token",
+  component: () => (
+    <Suspense fallback={<Loading />}>
+      <ActivateAccountPage />
+    </Suspense>
+  ),
+});
+
+// Site layout — público. O id "site" entra no id das rotas filhas
+// (ex.: "/site/products/$slug"), usado em useParams/useSearch({ from }).
 const siteLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "site",
@@ -132,12 +155,6 @@ const siteLayoutRoute = createRoute({
 const homeRoute = createRoute({
   getParentRoute: () => siteLayoutRoute,
   path: "/",
-  loader: () =>
-    queryClient.ensureQueryData({
-      queryKey: ["products", 0, 6],
-      queryFn: () => ProductsService.fetchProducts(0, 6),
-    }),
-  pendingComponent: Loading,
   errorComponent: RouteError,
   component: () => (
     <Suspense fallback={<Loading />}>
@@ -149,17 +166,7 @@ const homeRoute = createRoute({
 const productListRoute = createRoute({
   getParentRoute: () => siteLayoutRoute,
   path: "/products",
-  validateSearch: (search: Record<string, unknown>) => ({
-    page: Number(search.page ?? 0),
-    q: String(search.q ?? ""),
-  }),
-  loaderDeps: ({ search: { page } }) => ({ page }),
-  loader: ({ deps: { page } }) =>
-    queryClient.ensureQueryData({
-      queryKey: ["products", page, 12],
-      queryFn: () => ProductsService.fetchProducts(page, 12),
-    }),
-  pendingComponent: Loading,
+  validateSearch: (search) => SchemaProductListSearch.parse(search),
   errorComponent: RouteError,
   component: () => (
     <Suspense fallback={<Loading />}>
@@ -171,12 +178,11 @@ const productListRoute = createRoute({
 const productDetailRoute = createRoute({
   getParentRoute: () => siteLayoutRoute,
   path: "/products/$slug",
-  loader: ({ params }) =>
-    queryClient.ensureQueryData({
-      queryKey: ["product", params.slug],
-      queryFn: () => ProductsService.getBySlug(params.slug),
-    }),
-  pendingComponent: Loading,
+  validateSearch: (search) => SchemaProductDetailSearch.parse(search),
+  // Pré-carrega o produto (ex.: ao passar o mouse no link) sem bloquear a navegação
+  loader: ({ params }) => {
+    queryClient.prefetchQuery(productBySlugQueryOptions(params.slug));
+  },
   errorComponent: RouteError,
   component: () => (
     <Suspense fallback={<Loading />}>
@@ -186,9 +192,9 @@ const productDetailRoute = createRoute({
 });
 
 const notFoundRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => siteLayoutRoute,
   path: "*",
-  component: () => <NotFoundView path="/" message="Voltar para início" />,
+  component: () => <NotFoundView path="/" message="Voltar para o início" />,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -197,13 +203,14 @@ const routeTree = rootRoute.addChildren([
     signUpRoute,
     forgotPasswordRoute,
     resetPasswordRoute,
+    activateAccountRoute,
   ]),
   siteLayoutRoute.addChildren([
     homeRoute,
     productListRoute,
     productDetailRoute,
+    notFoundRoute,
   ]),
-  notFoundRoute,
 ]);
 
 export const router = createRouter({

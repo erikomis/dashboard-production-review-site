@@ -8,7 +8,7 @@ const linkClass = "rounded text-sm text-brand-100 transition-colors hover:text-w
 
 export const SiteFooter = ({ categories, isAuthenticated, handleLogout }: SiteFooterProps) => {
   return (
-    <footer className="on-dark mt-20 bg-brand-950 text-brand-100">
+    <footer className="on-dark mt-20 bg-brand-950 text-brand-100 dark:border-t dark:border-white/10 dark:bg-[#0E1433]">
       <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
         <div>
           <Link to="/" className="inline-block rounded-md" aria-label="ReviewStore — página inicial">
@@ -56,6 +56,9 @@ export const SiteFooter = ({ categories, isAuthenticated, handleLogout }: SiteFo
             {isAuthenticated ? (
               <>
                 <li><Link to="/minhas-avaliacoes" className={linkClass}>Minhas avaliações</Link></li>
+                <li><Link to="/seguindo" className={linkClass}>Produtos que sigo</Link></li>
+                <li><Link to="/notificacoes" className={linkClass}>Notificações</Link></li>
+                <li><Link to="/preferencias" className={linkClass}>Preferências</Link></li>
                 <li>
                   <button type="button" onClick={handleLogout} className={linkClass}>
                     Sair da conta

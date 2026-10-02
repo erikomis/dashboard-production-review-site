@@ -1,5 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ChevronDown, MessageSquareText, PackageX, PenLine, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Expand, MessageSquareText, PackageX, PenLine, X } from "lucide-react";
+import { FollowButton } from "@/modules/site/components/FollowButton";
+import { Lightbox } from "@/shared/components/lightbox";
+import { Modal } from "@/shared/components/modal";
+import { ReportReview } from "./report-review/ReportReview";
 import { Breadcrumb, type BreadcrumbItem } from "@/modules/site/components/Breadcrumb";
 import { Pagination } from "@/modules/site/components/Pagination";
 import { ProductCard, ProductCardSkeleton } from "@/modules/site/components/ProductCard";
@@ -57,6 +61,10 @@ export const ProductDetailView = ({
   currentImage,
   selectedImage,
   setSelectedImage,
+  lightboxIndex,
+  openLightbox,
+  closeLightbox,
+  setLightboxIndex,
   totalReviews,
   averageNote,
   distribution,
@@ -80,6 +88,16 @@ export const ProductDetailView = ({
   isReviewFiltered,
   helpful,
   helpfulAnnouncement,
+  report,
+  reportingReview,
+  closeReport,
+  onReported,
+  isReporting,
+  onReportPendingChange,
+  following,
+  followersCount,
+  onToggleFollow,
+  isFollowPending,
   relatedProducts,
   isLoadingRelated,
   isAuthenticated,
@@ -168,14 +186,26 @@ export const ProductDetailView = ({
       {/* Produto */}
       <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
         <div>
-          <ProductImage
-            name={product.name}
-            src={currentImage?.urlImage}
-            seed={product.id}
-            size="hero"
-            loading="eager"
-            className="aspect-[4/3] w-full rounded-3xl border border-line"
-          />
+          <div className="relative">
+            <ProductImage
+              name={product.name}
+              src={currentImage?.urlImage}
+              seed={product.id}
+              size="hero"
+              loading="eager"
+              className="aspect-[4/3] w-full rounded-3xl border border-line shadow-card"
+            />
+            {currentImage && (
+              <button
+                type="button"
+                onClick={() => openLightbox(selectedImage)}
+                className="absolute bottom-4 right-4 inline-flex h-10 items-center gap-2 rounded-full bg-white/95 px-4 text-sm font-semibold text-[#1C2434] shadow-raised ring-1 ring-black/5 transition-colors hover:bg-white"
+              >
+                <Expand aria-hidden="true" className="h-4 w-4" />
+                Ampliar foto
+              </button>
+            )}
+          </div>
           {images.length > 1 && (
             <ul className="mt-3 flex flex-wrap gap-2" aria-label="Fotos do produto">
               {images.map((image, idx) => (
@@ -186,7 +216,7 @@ export const ProductDetailView = ({
                     aria-pressed={selectedImage === idx}
                     className={cn(
                       "block overflow-hidden rounded-xl border-2 transition-colors",
-                      selectedImage === idx ? "border-brand-600" : "border-line hover:border-line-strong",
+                      selectedImage === idx ? "border-primary dark:border-brand-300" : "border-line hover:border-line-strong",
                     )}
                   >
                     <ProductImage
@@ -201,6 +231,16 @@ export const ProductDetailView = ({
               ))}
             </ul>
           )}
+          <Lightbox
+            images={images.map((image, idx) => ({ src: image.urlImage, alt: `Foto ${idx + 1} de ${images.length} do produto ${product.name}` }))}
+            index={lightboxIndex}
+            onClose={closeLightbox}
+            onIndexChange={(idx) => {
+              setLightboxIndex(idx);
+              setSelectedImage(idx);
+            }}
+            label={`Fotos de ${product.name}`}
+          />
         </div>
 
         <div className="flex flex-col">
@@ -229,7 +269,7 @@ export const ProductDetailView = ({
                     to="/categorias/$slug"
                     params={{ slug: categorySlug }}
                     search={{ sub: product.subCategorieId }}
-                    className="rounded-full bg-brand-50 px-3 py-1 font-semibold text-brand-800 hover:bg-brand-100"
+                    className="rounded-full bg-brand-50 px-3 py-1 font-semibold text-brand-800 hover:bg-tint-strong"
                   >
                     {product.subCategorieName}
                   </Link>
@@ -262,16 +302,29 @@ export const ProductDetailView = ({
 
           <p className="mt-6 whitespace-pre-line text-lg leading-relaxed text-ink-soft">{product.description}</p>
 
-          <div className="mt-8 flex flex-wrap gap-3 border-t border-line pt-6">
+          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-line pt-6">
             <a href="#avaliar" className={buttonVariants({ size: "lg" })}>
               <PenLine aria-hidden="true" className="h-5 w-5" />
               Escrever avaliação
             </a>
             {hasReviews && (
-              <a href="#avaliacoes" className={buttonVariants({ size: "lg", color: "outline" })}>
+              <a href="#avaliacoes" className={buttonVariants({ size: "lg", color: "ghost" })}>
                 Ler avaliações
               </a>
             )}
+          </div>
+          <div className="mt-5 rounded-2xl border border-line bg-surface p-4 shadow-card sm:p-5">
+            <p className="mb-3 text-sm text-ink-soft">
+              <span className="font-semibold text-ink">Acompanhe este produto.</span> Seguindo, você recebe uma notificação a
+              cada avaliação nova.
+            </p>
+            <FollowButton
+              following={following}
+              followersCount={followersCount}
+              onToggle={onToggleFollow}
+              pending={isFollowPending}
+              productName={product.name}
+            />
           </div>
         </div>
       </div>
@@ -440,7 +493,7 @@ export const ProductDetailView = ({
                 >
                   {reviews.map((review) => (
                     <li key={review.id}>
-                      <ReviewCard review={review} helpful={helpful} />
+                      <ReviewCard review={review} helpful={helpful} report={report} />
                     </li>
                   ))}
                 </ul>
@@ -479,6 +532,32 @@ export const ProductDetailView = ({
           />
         </div>
       </section>
+
+      <Modal
+        open={!!reportingReview}
+        onClose={closeReport}
+        closeDisabled={isReporting}
+        title="Denunciar avaliação"
+        description={
+          reportingReview ? (
+            <>
+              Conte por que a avaliação <strong className="font-semibold text-ink">“{reportingReview.title}”</strong>
+              {reportingReview.userName ? <> de {reportingReview.userName}</> : null} não deveria estar aqui. A moderação
+              analisa cada denúncia; seu nome não é mostrado ao autor.
+            </>
+          ) : undefined
+        }
+        className="max-w-xl"
+      >
+        {reportingReview && (
+          <ReportReview
+            review={reportingReview}
+            onCancel={closeReport}
+            onReported={onReported}
+            onPendingChange={onReportPendingChange}
+          />
+        )}
+      </Modal>
 
       {/* Mesma subcategoria */}
       {product.subCategorieName && (isLoadingRelated || relatedProducts.length > 0) && (

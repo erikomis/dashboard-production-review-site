@@ -5,7 +5,7 @@ import { ReviewCard, ReviewCardSkeleton } from "@/modules/site/components/Review
 import { RankedProduct, RankedProductSkeleton } from "@/modules/site/components/RankedProduct";
 import type { ProductSummary } from "@/shared/types/product";
 import { StarRating } from "@/modules/site/components/StarRating";
-import { SearchForm } from "@/modules/site/layout/SearchForm";
+import { SearchCombobox as SearchForm } from "@/modules/site/layout/search-combobox/SearchCombobox";
 import { buttonVariants } from "@/shared/components/button-variants";
 import { EmptyState, ErrorState } from "@/shared/components/state";
 import { formatDate, formatInteger, getInitials } from "@/shared/utils/format";
@@ -29,7 +29,7 @@ const SectionHeader = ({
 }) => (
   <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
     <div className="max-w-2xl">
-      <p className="text-sm font-semibold uppercase tracking-wider text-brand-700">{eyebrow}</p>
+      <p className="eyebrow">{eyebrow}</p>
       <h2 id={id} className="mt-1 text-3xl font-bold text-ink sm:text-[2.1rem]">
         {title}
       </h2>
@@ -183,7 +183,7 @@ export const HomeView = (props: HomeViewProps) => {
                   <p className="mt-3 line-clamp-3 leading-relaxed text-ink-soft">{highlightReview.description}</p>
                 </blockquote>
                 <figcaption className="mt-6 flex items-center gap-3 border-t border-line pt-5">
-                  <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-800">
+                  <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full bg-tint-strong text-sm font-bold text-brand-800">
                     {getInitials(highlightReview.userName)}
                   </span>
                   <span className="text-sm">
@@ -201,71 +201,8 @@ export const HomeView = (props: HomeViewProps) => {
         </div>
       </section>
 
-      {/* CATEGORIAS */}
-      <section aria-labelledby="categorias-title" id="categorias" tabIndex={-1} className="container-page pt-16 focus:outline-none sm:pt-20">
-        <SectionHeader
-          id="categorias-title"
-          eyebrow="Navegue por categoria"
-          title="Encontre o que você procura"
-          description="Escolha uma categoria ou subcategoria para ver os produtos e o que as pessoas estão dizendo."
-        />
-        {isErrorCategories ? (
-          <ErrorState message="Não conseguimos carregar as categorias." onRetry={() => refetchCategories()} />
-        ) : isLoadingCategories ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="skeleton h-40 rounded-2xl" />
-            ))}
-          </div>
-        ) : categories.length === 0 ? (
-          <EmptyState title="Nenhuma categoria por aqui ainda" icon={<Layers />} headingLevel="h3" />
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category, idx) => (
-              <li
-                key={category.id}
-                className={cn(
-                  "flex flex-col rounded-2xl border border-line p-6",
-                  idx % 2 === 0 ? "bg-brand-50" : "bg-surface",
-                )}
-              >
-                <h3 className="text-xl font-semibold text-ink">
-                  <Link
-                    to="/categorias/$slug"
-                    params={{ slug: category.slug }}
-                    className="inline-flex items-center gap-1.5 underline-offset-4 hover:text-brand-700 hover:underline"
-                  >
-                    {category.name}
-                    <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                  </Link>
-                </h3>
-                {category.description && <p className="mt-1 text-sm text-muted">{category.description}</p>}
-                {category.subCategories.length > 0 ? (
-                  <ul className="mt-5 flex flex-wrap gap-2" aria-label={`Subcategorias de ${category.name}`}>
-                    {category.subCategories.map((sub) => (
-                      <li key={sub.id}>
-                        <Link
-                          to="/categorias/$slug"
-                          params={{ slug: category.slug }}
-                          search={{ sub: sub.id }}
-                          className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong/40 bg-surface px-4 text-sm font-semibold text-ink transition-colors hover:border-brand-600 hover:text-brand-700"
-                        >
-                          {sub.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-5 text-sm text-muted">Sem subcategorias no momento.</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
       {/* RANKING */}
-      <section aria-labelledby="ranking-title" className="container-page pt-16 sm:pt-20">
+      <section aria-labelledby="ranking-title" className="container-page pt-16 sm:pt-24">
         <SectionHeader
           id="ranking-title"
           eyebrow="Ranking da comunidade"
@@ -305,8 +242,105 @@ export const HomeView = (props: HomeViewProps) => {
         </div>
       </section>
 
+      {/* CATEGORIAS */}
+      <section aria-labelledby="categorias-title" id="categorias" tabIndex={-1} className="container-page pt-16 focus:outline-none sm:pt-24">
+        <SectionHeader
+          id="categorias-title"
+          eyebrow="Navegue por categoria"
+          title="Encontre o que você procura"
+          description="Escolha uma categoria ou subcategoria para ver os produtos e o que as pessoas estão dizendo."
+        />
+        {isErrorCategories ? (
+          <ErrorState message="Não conseguimos carregar as categorias." onRetry={() => refetchCategories()} />
+        ) : isLoadingCategories ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="skeleton h-40 rounded-2xl" />
+            ))}
+          </div>
+        ) : categories.length === 0 ? (
+          <EmptyState title="Nenhuma categoria por aqui ainda" icon={<Layers />} headingLevel="h3" />
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map((category, idx) => (
+              <li
+                key={category.id}
+                className={cn(
+                  "lift relative flex flex-col overflow-hidden rounded-2xl border border-line p-6 shadow-card hover:shadow-raised",
+                  idx % 3 === 0 ? "bg-tint" : "bg-surface",
+                )}
+              >
+                <h3 className="text-xl font-semibold text-ink">
+                  <Link
+                    to="/categorias/$slug"
+                    params={{ slug: category.slug }}
+                    className="inline-flex items-center gap-1.5 underline-offset-4 hover:text-brand-700 hover:underline"
+                  >
+                    {category.name}
+                    <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                  </Link>
+                </h3>
+                {category.description && <p className="mt-1 text-sm text-muted">{category.description}</p>}
+                {category.subCategories.length > 0 ? (
+                  <ul className="mt-5 flex flex-wrap gap-2" aria-label={`Subcategorias de ${category.name}`}>
+                    {category.subCategories.map((sub) => (
+                      <li key={sub.id}>
+                        <Link
+                          to="/categorias/$slug"
+                          params={{ slug: category.slug }}
+                          search={{ sub: sub.id }}
+                          className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong/40 bg-surface px-4 text-sm font-semibold text-ink transition-colors hover:border-brand-600 hover:text-brand-700"
+                        >
+                          {sub.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-5 text-sm text-muted">Sem subcategorias no momento.</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* AVALIAÇÕES RECENTES */}
+      <section aria-labelledby="recentes-title" id="avaliacoes-recentes" tabIndex={-1} className="container-page pt-16 focus:outline-none sm:pt-24">
+        <SectionHeader
+          id="recentes-title"
+          eyebrow="Da comunidade"
+          title="Avaliações recentes"
+          description="O que as pessoas estão dizendo agora."
+        />
+        {isErrorReviews ? (
+          <ErrorState message="Não conseguimos carregar as avaliações." onRetry={() => refetchReviews()} />
+        ) : isLoadingReviews ? (
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <ReviewCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : recentReviews.length === 0 ? (
+          <EmptyState
+            title="Ainda não há avaliações"
+            description="Seja a primeira pessoa a avaliar um produto."
+            icon={<MessageSquareText />}
+            headingLevel="h3"
+          />
+        ) : (
+          <ul className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {recentReviews.slice(0, RECENT_REVIEWS_SIZE).map((review) => (
+              <li key={review.id}>
+                <ReviewCard review={review} showProduct compact />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       {/* DESTAQUES */}
-      <section aria-labelledby="destaques-title" className="container-page pt-16 sm:pt-20">
+      <section aria-labelledby="destaques-title" className="container-page pt-16 sm:pt-24">
         <SectionHeader
           id="destaques-title"
           eyebrow="Em destaque"
@@ -341,42 +375,8 @@ export const HomeView = (props: HomeViewProps) => {
         )}
       </section>
 
-      {/* AVALIAÇÕES RECENTES */}
-      <section aria-labelledby="recentes-title" id="avaliacoes-recentes" tabIndex={-1} className="container-page pt-16 focus:outline-none sm:pt-20">
-        <SectionHeader
-          id="recentes-title"
-          eyebrow="Da comunidade"
-          title="Avaliações recentes"
-          description="O que as pessoas estão dizendo agora."
-        />
-        {isErrorReviews ? (
-          <ErrorState message="Não conseguimos carregar as avaliações." onRetry={() => refetchReviews()} />
-        ) : isLoadingReviews ? (
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3" aria-busy="true">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <ReviewCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : recentReviews.length === 0 ? (
-          <EmptyState
-            title="Ainda não há avaliações"
-            description="Seja a primeira pessoa a avaliar um produto."
-            icon={<MessageSquareText />}
-            headingLevel="h3"
-          />
-        ) : (
-          <ul className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {recentReviews.slice(0, RECENT_REVIEWS_SIZE).map((review) => (
-              <li key={review.id}>
-                <ReviewCard review={review} showProduct />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
       {/* CTA */}
-      <section aria-labelledby="cta-title" className="container-page pt-16 sm:pt-20">
+      <section aria-labelledby="cta-title" className="container-page pt-16 sm:pt-24">
         <div className="relative overflow-hidden rounded-3xl bg-brand-50 px-6 py-12 sm:px-12">
           <div aria-hidden="true" className="absolute -right-6 -top-10 hidden font-display text-[14rem] font-bold leading-none text-brand-600/10 md:block">
             ★

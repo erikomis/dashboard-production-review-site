@@ -1,0 +1,8 @@
+services:
+  site:
+    container_name: site
+    # imagem privada no GitHub Container Registry; o deploy define IMAGE_TAG=sha-<commit>
+    image: ghcr.io/erikomis/dashboard-production-review-site:${IMAGE_TAG:-latest}
+    ports:
+      - "5174:5174"
+    restart: unless-stopped
